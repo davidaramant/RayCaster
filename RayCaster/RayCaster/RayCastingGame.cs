@@ -9,12 +9,28 @@ namespace RayCaster
     /// </summary>
     public class RayCastingGame : Game
     {
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
+        GraphicsDeviceManager _graphics;
+        SpriteBatch _spriteBatch;
+
+        int[] _buffer;
+        Texture2D _outputTexture;
+
+
+        private const int ScreenWidth = 1024;
+        private const int ScreenHeight = 768;
+
+        private const int RayCastRenderWidth = 1024;
+        private const int RayCastRenderHeight = 768;
 
         public RayCastingGame()
         {
-            graphics = new GraphicsDeviceManager(this);
+            _graphics = new GraphicsDeviceManager(this)
+            {
+                PreferredBackBufferWidth = ScreenWidth,
+                PreferredBackBufferHeight = ScreenHeight,
+                IsFullScreen = false,
+                SynchronizeWithVerticalRetrace = true,
+            };
             Content.RootDirectory = "Content";
         }
 
@@ -38,9 +54,10 @@ namespace RayCaster
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            _outputTexture = new Texture2D(_graphics.GraphicsDevice, width: RayCastRenderWidth, height: RayCastRenderHeight);
+            _buffer = new int[RayCastRenderWidth * RayCastRenderHeight];
         }
 
         /// <summary>
@@ -73,9 +90,39 @@ namespace RayCaster
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            _spriteBatch.Begin(
+                sortMode: SpriteSortMode.Immediate,
+                blendState: BlendState.Opaque,
+                samplerState: SamplerState.PointWrap,
+                depthStencilState: DepthStencilState.None,
+                rasterizerState: RasterizerState.CullNone);
 
-            // TODO: Add your drawing code here
+            for (int y = 0; y < RayCastRenderHeight; y++)
+            {
+                for (int x = 0; x < RayCastRenderWidth; x++)
+                {
+                    byte a = 0xFF;
+                    byte b = (byte)(x % 256);
+                    byte g = (byte)(y % 256);
+                    byte r = (byte)(256 * ((gameTime.TotalGameTime.Seconds % 10) / 10.0));
+
+                    _buffer[y * RayCastRenderWidth + x] = a << 24 | b << 16 | g << 8 | r;
+                }
+            }
+
+            _outputTexture.SetData(_buffer);
+
+            _spriteBatch.Draw(
+                texture: _outputTexture,
+                destinationRectangle: new Rectangle(
+                    x: (ScreenWidth - RayCastRenderWidth) / 2,
+                    y: 0,
+                    width: RayCastRenderWidth,
+                    height: RayCastRenderHeight),
+                color: Color.White);
+
+            _spriteBatch.End();
+
 
             base.Draw(gameTime);
         }
