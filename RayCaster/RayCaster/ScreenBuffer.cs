@@ -7,7 +7,7 @@ namespace RayCasterGame
         readonly int _width;
         readonly int _height;
 
-        readonly int[] _buffer;
+        readonly uint[] _buffer;
 
         public int Width
         {
@@ -19,7 +19,7 @@ namespace RayCasterGame
             get { return _height; }
         }
 
-        public int this[int x, int y]
+        public uint this[int x, int y]
         {
             get { return _buffer[y * Width + x]; }
             set { _buffer[y * Width + x] = value; }
@@ -29,7 +29,7 @@ namespace RayCasterGame
         {
             _width = width;
             _height = height;
-            _buffer = new int[width * height];
+            _buffer = new uint[width * height];
         }
 
         public void CopyToTexture(Texture2D texture)

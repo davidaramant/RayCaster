@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
+using Microsoft.Xna.Framework;
 
 namespace RayCasterGame
 {
@@ -38,89 +40,115 @@ namespace RayCasterGame
             new int[]{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
         };
 
-        double _posX = 22;
-        double _posY = 12;
+        DoublePosition _playerPos = new DoublePosition { X = 22, Y = 12 };
+        Vector2D _playerDirection = new Vector2D { X = -1, Y = 0 };
+        Vector2D _cameraPlane = new Vector2D { X = 0, Y = 0.66 };
 
-        double dirX = -1;
-        double dirY = 0;
+        sealed class DoublePosition
+        {
+            public double X;
+            public double Y;
 
-        double planeX = 0;
-        double planeY = 0.66;
+            public Position TruncateToPosition()
+            {
+                return new Position { X = (int)X, Y = (int)Y };
+            }
+
+            public DoublePosition Clone()
+            {
+                return new DoublePosition { X = X, Y = Y };
+            }
+        }
+
+        sealed class Position
+        {
+            public int X;
+            public int Y;
+        }
+
+        sealed class Vector2D
+        {
+            public double X;
+            public double Y;
+        }
 
         public void Render(ScreenBuffer buffer)
         {
             for (int x = 0; x < buffer.Width; x++)
             {
                 //calculate ray position and direction 
-                double cameraX = 2 * x / (double)buffer.Width - 1; //x-coordinate in camera space
-                double rayPosX = _posX;
-                double rayPosY = _posY;
-                double rayDirX = dirX + planeX * cameraX;
-                double rayDirY = dirY + planeY * cameraX;
+                double cameraX = 2.0 * x / (double)buffer.Width - 1.0; //x-coordinate in camera space
+                var rayPos = _playerPos.Clone();
+
+                var rayDir = new Vector2D
+                {
+                    X = _playerDirection.X + _cameraPlane.X * cameraX,
+                    Y = _playerDirection.Y + _cameraPlane.Y * cameraX
+                };
+
                 //which box of the map we're in  
-                int mapX = (int)rayPosX;
-                int mapY = (int)rayPosY;
+                var mapPos = rayPos.TruncateToPosition();
 
                 //length of ray from current position to next x or y-side
                 double sideDistX;
                 double sideDistY;
 
                 //length of ray from one x or y-side to next x or y-side
-                double deltaDistX = Math.Sqrt(1 + (rayDirY * rayDirY) / (rayDirX * rayDirX));
-                double deltaDistY = Math.Sqrt(1 + (rayDirX * rayDirX) / (rayDirY * rayDirY));
+                double deltaDistX = Math.Sqrt(1 + (rayDir.Y * rayDir.Y) / (rayDir.X * rayDir.X));
+                double deltaDistY = Math.Sqrt(1 + (rayDir.X * rayDir.X) / (rayDir.Y * rayDir.Y));
                 double perpWallDist;
 
                 //what direction to step in x or y-direction (either +1 or -1)
                 int stepX;
                 int stepY;
 
-                int hit = 0; //was there a wall hit?
+                bool hit = false; //was there a wall hit?
                 int side = 0; //was a NS or a EW wall hit?
                 //calculate step and initial sideDist
-                if (rayDirX < 0)
+                if (rayDir.X < 0)
                 {
                     stepX = -1;
-                    sideDistX = (rayPosX - mapX) * deltaDistX;
+                    sideDistX = (rayPos.X - mapPos.X) * deltaDistX;
                 }
                 else
                 {
                     stepX = 1;
-                    sideDistX = (mapX + 1.0 - rayPosX) * deltaDistX;
+                    sideDistX = (mapPos.X + 1.0 - rayPos.X) * deltaDistX;
                 }
-                if (rayDirY < 0)
+                if (rayDir.Y < 0)
                 {
                     stepY = -1;
-                    sideDistY = (rayPosY - mapY) * deltaDistY;
+                    sideDistY = (rayPos.Y - mapPos.Y) * deltaDistY;
                 }
                 else
                 {
                     stepY = 1;
-                    sideDistY = (mapY + 1.0 - rayPosY) * deltaDistY;
+                    sideDistY = (mapPos.Y + 1.0 - rayPos.Y) * deltaDistY;
                 }
                 //perform DDA
-                while (hit == 0)
+                while (!hit)
                 {
                     //jump to next map square, OR in x-direction, OR in y-direction
                     if (sideDistX < sideDistY)
                     {
                         sideDistX += deltaDistX;
-                        mapX += stepX;
+                        mapPos.X += stepX;
                         side = 0;
                     }
                     else
                     {
                         sideDistY += deltaDistY;
-                        mapY += stepY;
+                        mapPos.Y += stepY;
                         side = 1;
                     }
                     //Check if ray has hit a wall
-                    if (_worldMap[mapX][mapY] > 0) hit = 1;
+                    if (_worldMap[mapPos.X][mapPos.Y] > 0) hit = true;
                 }
                 //Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
                 if (side == 0)
-                    perpWallDist = Math.Abs((mapX - rayPosX + (1 - stepX) / 2) / rayDirX);
+                    perpWallDist = Math.Abs((mapPos.X - rayPos.X + (1 - stepX) / 2) / rayDir.X);
                 else
-                    perpWallDist = Math.Abs((mapY - rayPosY + (1 - stepY) / 2) / rayDirY);
+                    perpWallDist = Math.Abs((mapPos.Y - rayPos.Y + (1 - stepY) / 2) / rayDir.Y);
 
                 //Calculate height of line to draw on screen
                 int lineHeight = Math.Abs((int)(buffer.Height / perpWallDist));
@@ -132,31 +160,33 @@ namespace RayCasterGame
                 if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
                 //choose wall color
-                int color;
-                switch (_worldMap[mapX][mapY])
+                Color color;
+                switch (_worldMap[mapPos.X][mapPos.Y])
                 {
-                    case 1: color = ToColor(0xFF, 0, 0); break; //red
-                    case 2: color = ToColor(0, 0xFF, 0); break; //green
-                    case 3: color = ToColor(0, 0, 0xFF); break; //blue
-                    case 4: color = ToColor(0xFF, 0xFF, 0xFF); break; //white
-                    default: color = ToColor(0x80, 0x80, 0x80); break; //yellow
+                    case 1: color = Color.Red; break; //red
+                    case 2: color = Color.Green; break; //green
+                    case 3: color = Color.Blue; break; //blue
+                    case 4: color = Color.White; break; //white
+                    default: color = Color.Yellow; break; //yellow
                 }
 
                 //give x and y sides different brightness
-                if (side == 1) {color = color / 2;}
+                if (side == 1)
+                {
+                    color = Darken(color);
+                }
 
                 //draw the pixels of the stripe as a vertical line
-                //verLine(x, drawStart, drawEnd, color);
-                for (int y = drawStart; y < drawEnd; y++)
+                for (int y = drawStart; y <= drawEnd; y++)
                 {
-                    buffer[x, y] = color;
+                    buffer[x, y] = color.PackedValue;
                 }
             }
         }
 
-        static int ToColor(byte r, byte g, byte b)
+        static Color Darken(Color color)
         {
-            return 0xFF << 24 | b << 16 | g << 8 | r;
+            return new Color(color.R / 2, color.G / 2, color.B / 2);
         }
     }
 }
