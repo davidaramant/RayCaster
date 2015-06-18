@@ -12,7 +12,8 @@ namespace RayCasterGame
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
 
-        int[] _buffer;
+        ScreenBuffer _buffer;
+
         Texture2D _outputTexture;
 
 
@@ -57,7 +58,7 @@ namespace RayCasterGame
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             _outputTexture = new Texture2D(_graphics.GraphicsDevice, width: RayCastRenderWidth, height: RayCastRenderHeight);
-            _buffer = new int[RayCastRenderWidth * RayCastRenderHeight];
+            _buffer = new ScreenBuffer(RayCastRenderWidth, RayCastRenderHeight);
         }
 
         /// <summary>
@@ -97,20 +98,20 @@ namespace RayCasterGame
                 depthStencilState: DepthStencilState.None,
                 rasterizerState: RasterizerState.CullNone);
 
-            for (int y = 0; y < RayCastRenderHeight; y++)
+            for (int y = 0; y < _buffer.Height; y++)
             {
-                for (int x = 0; x < RayCastRenderWidth; x++)
+                for (int x = 0; x < _buffer.Width; x++)
                 {
                     byte a = 0xFF;
                     byte b = (byte)(x % 256);
                     byte g = (byte)(y % 256);
                     byte r = (byte)(256 * ((gameTime.TotalGameTime.Seconds % 10) / 10.0));
 
-                    _buffer[y * RayCastRenderWidth + x] = a << 24 | b << 16 | g << 8 | r;
+                    _buffer[x,y] = a << 24 | b << 16 | g << 8 | r;
                 }
             }
 
-            _outputTexture.SetData(_buffer);
+            _buffer.CopyToTexture(_outputTexture);
 
             _spriteBatch.Draw(
                 texture: _outputTexture,
