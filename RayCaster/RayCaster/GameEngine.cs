@@ -2,12 +2,12 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace RayCaster
+namespace RayCasterGame
 {
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
-    public class RayCastingGame : Game
+    public class GameEngine : Game
     {
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
@@ -22,7 +22,7 @@ namespace RayCaster
         private const int RayCastRenderWidth = 1024;
         private const int RayCastRenderHeight = 768;
 
-        public RayCastingGame()
+        public GameEngine()
         {
             _graphics = new GraphicsDeviceManager(this)
             {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RayCaster
+namespace RayCasterGame
 {
 #if WINDOWS || LINUX
     /// <summary>
@@ -14,7 +14,7 @@ namespace RayCaster
         [STAThread]
         static void Main()
         {
-            using (var game = new RayCastingGame())
+            using (var game = new GameEngine())
                 game.Run();
         }
     }
