@@ -7,7 +7,7 @@ namespace RayCasterGame
     /// <summary>
     /// This is the main type for your game.
     /// </summary>
-    public class GameEngine : Game
+    public sealed class GameEngine : Game
     {
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
@@ -15,7 +15,7 @@ namespace RayCasterGame
         ScreenBuffer _buffer;
 
         Texture2D _outputTexture;
-
+        RayCaster _caster;
 
         private const int ScreenWidth = 1024;
         private const int ScreenHeight = 768;
@@ -59,6 +59,7 @@ namespace RayCasterGame
 
             _outputTexture = new Texture2D(_graphics.GraphicsDevice, width: RayCastRenderWidth, height: RayCastRenderHeight);
             _buffer = new ScreenBuffer(RayCastRenderWidth, RayCastRenderHeight);
+            _caster = new RayCaster();
         }
 
         /// <summary>
@@ -98,19 +99,7 @@ namespace RayCasterGame
                 depthStencilState: DepthStencilState.None,
                 rasterizerState: RasterizerState.CullNone);
 
-            for (int y = 0; y < _buffer.Height; y++)
-            {
-                for (int x = 0; x < _buffer.Width; x++)
-                {
-                    byte a = 0xFF;
-                    byte b = (byte)(x % 256);
-                    byte g = (byte)(y % 256);
-                    byte r = (byte)(256 * ((gameTime.TotalGameTime.Seconds % 10) / 10.0));
-
-                    _buffer[x,y] = a << 24 | b << 16 | g << 8 | r;
-                }
-            }
-
+            _caster.Render(_buffer);
             _buffer.CopyToTexture(_outputTexture);
 
             _spriteBatch.Draw(
