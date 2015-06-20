@@ -78,10 +78,43 @@ namespace RayCasterGame
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            var keyboardState = Keyboard.GetState();
+
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyboardState.IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
+            // Prevent contradictory inputs
+
+            var inputs = MovementInputs.None;
+
+            if (keyboardState.IsKeyDown(Keys.Up) || keyboardState.IsKeyDown(Keys.W))
+            {
+                inputs |= MovementInputs.Forward;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Down) || keyboardState.IsKeyDown(Keys.S))
+            {
+                inputs |= MovementInputs.Backward;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.Left))
+            {
+                inputs |= MovementInputs.TurnLeft;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Right))
+            {
+                inputs |= MovementInputs.TurnRight;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.Q))
+            {
+                inputs |= MovementInputs.StrafeLeft;
+            }
+            else if (keyboardState.IsKeyDown(Keys.W))
+            {
+                inputs |= MovementInputs.StrafeRight;
+            }
+
+            _caster.Update(inputs, gameTime);
 
             base.Update(gameTime);
         }

@@ -36,5 +36,13 @@ namespace RayCasterGame
         {
             texture.SetData(_buffer);
         }
+
+        public void Clear()
+        {
+            for( int i = 0; i < _buffer.Length; i++ )
+            {
+                _buffer[i] = 0;
+            }
+        }
     }
 }

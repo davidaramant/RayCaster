@@ -72,8 +72,54 @@ namespace RayCasterGame
             public double Y;
         }
 
+        public void Update(MovementInputs inputs, GameTime gameTime)
+        {
+            var moveSpeed = 5.0 * (gameTime.ElapsedGameTime.Milliseconds / 1000.0);
+            var rotSpeed = 3.0 * (gameTime.ElapsedGameTime.Milliseconds / 1000.0);
+
+            //move forward if no wall in front of you
+            if (inputs.HasFlag(MovementInputs.Forward))
+            {
+                if (_worldMap[(int)(_playerPos.X + _playerDirection.X * moveSpeed)][(int)_playerPos.Y] == 0)
+                    _playerPos.X += _playerDirection.X * moveSpeed;
+                if (_worldMap[(int)_playerPos.X][(int)(_playerPos.Y + _playerDirection.Y * moveSpeed)] == 0)
+                    _playerPos.Y += _playerDirection.Y * moveSpeed;
+            }
+            //move backwards if no wall behind you
+            if (inputs.HasFlag(MovementInputs.Backward))
+            {
+                if (_worldMap[(int)(_playerPos.X - _playerDirection.X * moveSpeed)][(int)_playerPos.Y] == 0)
+                    _playerPos.X -= _playerDirection.X * moveSpeed;
+                if (_worldMap[(int)_playerPos.X][(int)(_playerPos.Y - _playerDirection.Y * moveSpeed)] == 0)
+                    _playerPos.Y -= _playerDirection.Y * moveSpeed;
+            }
+            //rotate to the right   
+            if (inputs.HasFlag(MovementInputs.TurnRight))
+            {
+                //both camera direction and camera plane must be rotated
+                double oldDirX = _playerDirection.X;
+                _playerDirection.X = _playerDirection.X * Math.Cos(-rotSpeed) - _playerDirection.Y * Math.Sin(-rotSpeed);
+                _playerDirection.Y = oldDirX * Math.Sin(-rotSpeed) + _playerDirection.Y * Math.Cos(-rotSpeed);
+                double oldPlaneX = _cameraPlane.X;
+                _cameraPlane.X = _cameraPlane.X * Math.Cos(-rotSpeed) - _cameraPlane.Y * Math.Sin(-rotSpeed);
+                _cameraPlane.Y = oldPlaneX * Math.Sin(-rotSpeed) + _cameraPlane.Y * Math.Cos(-rotSpeed);
+            }
+            //rotate to the left
+            if (inputs.HasFlag(MovementInputs.TurnLeft))
+            {
+                //both camera direction and camera plane must be rotated
+                double oldDirX = _playerDirection.X;
+                _playerDirection.X = _playerDirection.X * Math.Cos(rotSpeed) - _playerDirection.Y * Math.Sin(rotSpeed);
+                _playerDirection.Y = oldDirX * Math.Sin(rotSpeed) + _playerDirection.Y * Math.Cos(rotSpeed);
+                double oldPlaneX = _cameraPlane.X;
+                _cameraPlane.X = _cameraPlane.X * Math.Cos(rotSpeed) - _cameraPlane.Y * Math.Sin(rotSpeed);
+                _cameraPlane.Y = oldPlaneX * Math.Sin(rotSpeed) + _cameraPlane.Y * Math.Cos(rotSpeed);
+            }
+        }
+
         public void Render(ScreenBuffer buffer)
         {
+            buffer.Clear();
             for (int x = 0; x < buffer.Width; x++)
             {
                 //calculate ray position and direction 
