@@ -170,23 +170,20 @@ namespace RayCasterGame
                     default: color = Color.Yellow; break; //yellow
                 }
 
+                HsvColor hsv = HsvColor.FromRgb(color);
+
                 //give x and y sides different brightness
                 if (side == 1)
                 {
-                    color = Darken(color);
+                    hsv.Value *= 0.75;
                 }
 
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y <= drawEnd; y++)
                 {
-                    buffer[x, y] = color.PackedValue;
+                    buffer[x, y] = hsv.ToPackedRgbColor();
                 }
             }
-        }
-
-        static Color Darken(Color color)
-        {
-            return new Color(color.R / 2, color.G / 2, color.B / 2);
         }
     }
 }
