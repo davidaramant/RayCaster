@@ -109,7 +109,7 @@ namespace RayCasterGame
             {
                 inputs |= MovementInputs.StrafeLeft;
             }
-            else if (keyboardState.IsKeyDown(Keys.W))
+            else if (keyboardState.IsKeyDown(Keys.E))
             {
                 inputs |= MovementInputs.StrafeRight;
             }

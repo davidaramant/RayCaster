@@ -77,44 +77,56 @@ namespace RayCasterGame
             var moveSpeed = 5.0 * (gameTime.ElapsedGameTime.Milliseconds / 1000.0);
             var rotSpeed = 3.0 * (gameTime.ElapsedGameTime.Milliseconds / 1000.0);
 
-            //move forward if no wall in front of you
             if (inputs.HasFlag(MovementInputs.Forward))
             {
-                if (_worldMap[(int)(_playerPos.X + _playerDirection.X * moveSpeed)][(int)_playerPos.Y] == 0)
-                    _playerPos.X += _playerDirection.X * moveSpeed;
-                if (_worldMap[(int)_playerPos.X][(int)(_playerPos.Y + _playerDirection.Y * moveSpeed)] == 0)
-                    _playerPos.Y += _playerDirection.Y * moveSpeed;
+                Move(_playerDirection, moveSpeed);
             }
-            //move backwards if no wall behind you
-            if (inputs.HasFlag(MovementInputs.Backward))
+            else if (inputs.HasFlag(MovementInputs.Backward))
             {
-                if (_worldMap[(int)(_playerPos.X - _playerDirection.X * moveSpeed)][(int)_playerPos.Y] == 0)
-                    _playerPos.X -= _playerDirection.X * moveSpeed;
-                if (_worldMap[(int)_playerPos.X][(int)(_playerPos.Y - _playerDirection.Y * moveSpeed)] == 0)
-                    _playerPos.Y -= _playerDirection.Y * moveSpeed;
+                var direction = new Vector2D { X = -_playerDirection.X, Y = -_playerDirection.Y };
+
+                Move(direction, moveSpeed);
             }
-            //rotate to the right   
+            if (inputs.HasFlag(MovementInputs.StrafeLeft))
+            {
+                var direction = new Vector2D { X = -_playerDirection.Y, Y = _playerDirection.X };
+
+                Move(direction, moveSpeed);
+            }
+            else if (inputs.HasFlag(MovementInputs.StrafeRight))
+            {
+                var direction = new Vector2D { X = _playerDirection.Y, Y = -_playerDirection.X };
+
+                Move(direction, moveSpeed);
+            }
+
             if (inputs.HasFlag(MovementInputs.TurnRight))
             {
-                //both camera direction and camera plane must be rotated
-                double oldDirX = _playerDirection.X;
-                _playerDirection.X = _playerDirection.X * Math.Cos(-rotSpeed) - _playerDirection.Y * Math.Sin(-rotSpeed);
-                _playerDirection.Y = oldDirX * Math.Sin(-rotSpeed) + _playerDirection.Y * Math.Cos(-rotSpeed);
-                double oldPlaneX = _cameraPlane.X;
-                _cameraPlane.X = _cameraPlane.X * Math.Cos(-rotSpeed) - _cameraPlane.Y * Math.Sin(-rotSpeed);
-                _cameraPlane.Y = oldPlaneX * Math.Sin(-rotSpeed) + _cameraPlane.Y * Math.Cos(-rotSpeed);
+                Rotate(-rotSpeed);
             }
-            //rotate to the left
-            if (inputs.HasFlag(MovementInputs.TurnLeft))
+            else if (inputs.HasFlag(MovementInputs.TurnLeft))
             {
-                //both camera direction and camera plane must be rotated
-                double oldDirX = _playerDirection.X;
-                _playerDirection.X = _playerDirection.X * Math.Cos(rotSpeed) - _playerDirection.Y * Math.Sin(rotSpeed);
-                _playerDirection.Y = oldDirX * Math.Sin(rotSpeed) + _playerDirection.Y * Math.Cos(rotSpeed);
-                double oldPlaneX = _cameraPlane.X;
-                _cameraPlane.X = _cameraPlane.X * Math.Cos(rotSpeed) - _cameraPlane.Y * Math.Sin(rotSpeed);
-                _cameraPlane.Y = oldPlaneX * Math.Sin(rotSpeed) + _cameraPlane.Y * Math.Cos(rotSpeed);
+                Rotate(rotSpeed);
             }
+        }
+
+        private void Move(Vector2D direction, double speed)
+        {
+            if (_worldMap[(int)(_playerPos.X + direction.X * speed)][(int)_playerPos.Y] == 0)
+                _playerPos.X += direction.X * speed;
+            if (_worldMap[(int)_playerPos.X][(int)(_playerPos.Y + direction.Y * speed)] == 0)
+                _playerPos.Y += direction.Y * speed;
+        }
+
+        private void Rotate(double rotSpeed)
+        {
+            //both camera direction and camera plane must be rotated
+            double oldDirX = _playerDirection.X;
+            _playerDirection.X = _playerDirection.X * Math.Cos(rotSpeed) - _playerDirection.Y * Math.Sin(rotSpeed);
+            _playerDirection.Y = oldDirX * Math.Sin(rotSpeed) + _playerDirection.Y * Math.Cos(rotSpeed);
+            double oldPlaneX = _cameraPlane.X;
+            _cameraPlane.X = _cameraPlane.X * Math.Cos(rotSpeed) - _cameraPlane.Y * Math.Sin(rotSpeed);
+            _cameraPlane.Y = oldPlaneX * Math.Sin(rotSpeed) + _cameraPlane.Y * Math.Cos(rotSpeed);
         }
 
         public void Render(ScreenBuffer buffer)
