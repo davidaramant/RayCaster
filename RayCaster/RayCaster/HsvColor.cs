@@ -9,29 +9,52 @@ namespace RayCasterGame
     /// <summary>
     /// HSV Color.  From http://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
     /// </summary>
-    public sealed class HsvColor
+    public struct HsvColor
     {
         /// <summary>
         /// Hue (angle in degrees)
         /// </summary>
-        public double Hue;
+        public readonly float Hue;
         /// <summary>
         /// Saturation (percentage)
         /// </summary>
-        public double Saturation;
+        public readonly float Saturation;
         /// <summary>
         /// Value (percentage)
         /// </summary>
-        public double Value;
+        public readonly float Value;
+
+        public static readonly HsvColor Black = new HsvColor();
+
+        public static readonly HsvColor Red = HsvColor.FromRgb(Color.Red);
+        public static readonly HsvColor Blue = HsvColor.FromRgb(Color.Blue);
+        public static readonly HsvColor Green = HsvColor.FromRgb(Color.Green);
+        public static readonly HsvColor White = HsvColor.FromRgb(Color.White);
+        public static readonly HsvColor Yellow = HsvColor.FromRgb(Color.Yellow);
+
+        public HsvColor(float hue,float saturation,float value)
+        {
+            Hue = hue;
+            Saturation = saturation;
+            Value = value;
+        }
+
+        public HsvColor AdjustValue( float valueFactor)
+        {
+            return new HsvColor(Hue, Saturation, valueFactor * Value);
+        }
 
         public static HsvColor FromRgb(Color color)
         {
-            HsvColor output = new HsvColor();
-            double min, max, delta;
+            float hue = 0;
+            float saturation = 0;
+            float value = 0;
 
-            double r = color.R / 255.0;
-            double g = color.G / 255.0;
-            double b = color.B / 255.0;
+            float min, max, delta;
+
+            float r = color.R / 255f;
+            float g = color.G / 255f;
+            float b = color.B / 255f;
 
             min = r < g ? r : g;
             min = min < b ? min : b;
@@ -39,47 +62,44 @@ namespace RayCasterGame
             max = r > g ? r : g;
             max = max > b ? max : b;
 
-            output.Value = max;
+            value = max;
             delta = max - min;
             if (max > 0.0)
             { // NOTE: if Max is == 0, this divide would cause a crash
-                output.Saturation = (delta / max);
+                saturation = (delta / max);
             }
             else
             {
                 // if max is 0, then r = g = b = 0              
                 // s = 0, v is undefined
-                output.Saturation = 0.0;
-                output.Hue = 0;
-                output.Value = 0;
-                return output;
+                return new HsvColor();
             }
             if (r >= max)
-                output.Hue = (g - b) / delta;        // between yellow & magenta
+                hue = (g - b) / delta;        // between yellow & magenta
             else
                 if (g >= max)
-                    output.Hue = 2.0 + (b - r) / delta;  // between cyan & yellow
+                    hue = 2f + (b - r) / delta;  // between cyan & yellow
                 else
-                    output.Hue = 4.0 + (r - g) / delta;  // between magenta & cyan
+                    hue = 4f + (r - g) / delta;  // between magenta & cyan
 
-            output.Hue *= 60.0;                              // degrees
+            hue *= 60f;                              // degrees
 
-            if (output.Hue < 0.0)
-                output.Hue += 360.0;
+            if (hue < 0f)
+                hue += 360f;
 
-            return output;
+            return new HsvColor(hue,saturation,value);
         }
 
 
         public uint ToPackedRgbColor()
         {
-            double hh, p, q, t, ff;
+            float hh, p, q, t, ff;
             long i;
-            double r = 0;
-            double g = 0;
-            double b = 0;
+            float r = 0;
+            float g = 0;
+            float b = 0;
 
-            if (Saturation <= 0.0)
+            if (Saturation <= 0)
             {
                 r = Value;
                 g = Value;
@@ -87,14 +107,14 @@ namespace RayCasterGame
                 return ToPackedColor(r, g, b);
             }
             hh = Hue;
-            if (hh >= 360.0)
-                hh = 0.0;
-            hh /= 60.0;
+            if (hh >= 360f)
+                hh = 0;
+            hh /= 60f;
             i = (long)hh;
             ff = hh - i;
-            p = Value * (1.0 - Saturation);
-            q = Value * (1.0 - (Saturation * ff));
-            t = Value * (1.0 - (Saturation * (1.0 - ff)));
+            p = Value * (1f - Saturation);
+            q = Value * (1f - (Saturation * ff));
+            t = Value * (1f - (Saturation * (1f - ff)));
 
             switch (i)
             {
@@ -133,9 +153,12 @@ namespace RayCasterGame
             return ToPackedColor(r, g, b);
         }
 
-        private static uint ToPackedColor(double r, double g, double b)
+        private static uint ToPackedColor(float r, float g, float b)
         {
-            return new Color((float)r, (float)g, (float)b).PackedValue;
+            var rByte = (byte)(0xFF*r);
+            var gByte = (byte)(0xFF*g);
+            var bByte = (byte)(0xFF*b);
+            return (uint)(0xFF << 24 | rByte << 16 | gByte << 8 | bByte);
         }
     }
 }

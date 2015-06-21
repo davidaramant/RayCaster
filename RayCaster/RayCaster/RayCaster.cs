@@ -131,7 +131,6 @@ namespace RayCasterGame
 
         public void Render(ScreenBuffer buffer)
         {
-            buffer.Clear();
             for (int x = 0; x < buffer.Width; x++)
             {
                 //calculate ray position and direction 
@@ -218,33 +217,32 @@ namespace RayCasterGame
                 if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
                 //choose wall color
-                Color color;
+                HsvColor color;
                 switch (_worldMap[mapPos.X][mapPos.Y])
                 {
-                    case 1: color = Color.Red; break; //red
-                    case 2: color = Color.Green; break; //green
-                    case 3: color = Color.Blue; break; //blue
-                    case 4: color = Color.White; break; //white
-                    default: color = Color.Yellow; break; //yellow
+                    case 1: color = HsvColor.Red; break; //red
+                    case 2: color = HsvColor.Green; break; //green
+                    case 3: color = HsvColor.Blue; break; //blue
+                    case 4: color = HsvColor.White; break; //white
+                    default: color = HsvColor.Yellow; break; //yellow
                 }
 
-                HsvColor hsv = HsvColor.FromRgb(color);
+                var valueFactor = 1f;
 
                 //give x and y sides different brightness
                 if (side == 1)
                 {
-                    hsv.Value *= 0.75;
+                    valueFactor *= 0.75f;
                 }
 
                 //shade by distance
-                var factor = Math.Min(1, 5.0 / perpWallDist);
-                hsv.Value *= factor;
+                valueFactor *= (float)Math.Min(1, 5.0 / perpWallDist);
+                color = color.AdjustValue(valueFactor);
 
-                var finalColor = hsv.ToPackedRgbColor();
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y <= drawEnd; y++)
                 {
-                    buffer[x, y] = finalColor;
+                    buffer[x, y] = color;
                 }
             }
         }

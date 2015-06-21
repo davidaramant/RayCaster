@@ -43,8 +43,7 @@ namespace RayCasterGame
         /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
+            this.TargetElapsedTime = System.TimeSpan.FromSeconds(1 / 60.0);
             base.Initialize();
         }
 
@@ -132,6 +131,7 @@ namespace RayCasterGame
                 depthStencilState: DepthStencilState.None,
                 rasterizerState: RasterizerState.CullNone);
 
+            _buffer.Clear();
             _caster.Render(_buffer);
             _buffer.CopyToTexture(_outputTexture);
 
