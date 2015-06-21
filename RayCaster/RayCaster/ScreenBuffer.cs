@@ -23,8 +23,8 @@ namespace RayCasterGame
 
         public HsvColor this[int x, int y]
         {
-            get { return _colorBuffer[y * Width + x]; }
-            set { _colorBuffer[y * Width + x] = value; }
+            get { return _colorBuffer[y + x * Height]; }
+            set { _colorBuffer[y + x * Height] = value; }
         }
 
         public ScreenBuffer(int width, int height)
@@ -39,7 +39,12 @@ namespace RayCasterGame
         {
             Parallel.For(0, _colorBuffer.Length, i =>
             {
-                _buffer[i] = _colorBuffer[i].ToPackedRgbColor();
+                var y = i % _height;
+                var x = i / _height;
+
+                var j = x + y * _width;
+
+                _buffer[j] = _colorBuffer[i].ToPackedRgbColor();
             });
 
             texture.SetData(_buffer);
@@ -47,10 +52,7 @@ namespace RayCasterGame
 
         public void Clear()
         {
-            for (int i = 0; i < _buffer.Length; i++)
-            {
-                _colorBuffer[i] = HsvColor.Black;
-            }
+            System.Array.Clear(_colorBuffer, 0, _colorBuffer.Length);
         }
     }
 }
