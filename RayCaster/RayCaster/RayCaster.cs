@@ -237,7 +237,7 @@ namespace RayCasterGame
 
                 //shade by distance
                 valueFactor *= (float)Math.Min(1, 5.0 / perpWallDist);
-                color = color.AdjustValue(valueFactor);
+                color = color.ScaleValue(valueFactor);
 
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y <= drawEnd; y++)
