@@ -9,68 +9,11 @@ namespace RayCasterGame
 {
     sealed class RayCaster
     {
-        const int _mapWidth = 24;
-        const int _mapHeight = 24;
-
-        int[][] _worldMap = new int[_mapWidth][]
-        {
-            new int[]{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
-            new int[]{1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,0,0,3,0,0,0,1},
-            new int[]{1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,4,0,0,0,0,5,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,4,0,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-            new int[]{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-        };
+        MapData _mapData = new MapData();
 
         DoublePosition _playerPos = new DoublePosition { X = 22, Y = 12 };
         Vector2D _playerDirection = new Vector2D { X = -1, Y = 0 };
         Vector2D _cameraPlane = new Vector2D { X = 0, Y = 0.66 };
-
-        sealed class DoublePosition
-        {
-            public double X;
-            public double Y;
-
-            public Position TruncateToPosition()
-            {
-                return new Position { X = (int)X, Y = (int)Y };
-            }
-
-            public DoublePosition Clone()
-            {
-                return new DoublePosition { X = X, Y = Y };
-            }
-        }
-
-        sealed class Position
-        {
-            public int X;
-            public int Y;
-        }
-
-        sealed class Vector2D
-        {
-            public double X;
-            public double Y;
-        }
 
         public void Update(MovementInputs inputs, GameTime gameTime)
         {
@@ -112,9 +55,9 @@ namespace RayCasterGame
 
         private void Move(Vector2D direction, double speed)
         {
-            if (_worldMap[(int)(_playerPos.X + direction.X * speed)][(int)_playerPos.Y] == 0)
+            if (_mapData.IsEmpty((int)(_playerPos.X + direction.X * speed), (int)_playerPos.Y))
                 _playerPos.X += direction.X * speed;
-            if (_worldMap[(int)_playerPos.X][(int)(_playerPos.Y + direction.Y * speed)] == 0)
+            if (_mapData.IsEmpty((int)_playerPos.X, (int)(_playerPos.Y + direction.Y * speed)))
                 _playerPos.Y += direction.Y * speed;
         }
 
@@ -199,7 +142,10 @@ namespace RayCasterGame
                         side = 1;
                     }
                     //Check if ray has hit a wall
-                    if (_worldMap[mapPos.X][mapPos.Y] > 0) hit = true;
+                    if (!_mapData.IsEmpty(mapPos))
+                    {
+                        hit = true;
+                    }
                 }
                 //Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
                 if (side == 0)
@@ -217,15 +163,7 @@ namespace RayCasterGame
                 if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
                 //choose wall color
-                HsvColor color;
-                switch (_worldMap[mapPos.X][mapPos.Y])
-                {
-                    case 1: color = HsvColor.Red; break; //red
-                    case 2: color = HsvColor.Green; break; //green
-                    case 3: color = HsvColor.Blue; break; //blue
-                    case 4: color = HsvColor.White; break; //white
-                    default: color = HsvColor.Yellow; break; //yellow
-                }
+                HsvColor color = _mapData.GetColor(mapPos);
 
                 var valueFactor = 1f;
 
