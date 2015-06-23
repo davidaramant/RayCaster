@@ -20,8 +20,8 @@ namespace RayCasterGame
         private const int ScreenWidth = 1024;
         private const int ScreenHeight = 768;
 
-        private const int RayCastRenderWidth = 1024;
-        private const int RayCastRenderHeight = 768;
+        private const int RayCastRenderWidth = 1024/2;
+        private const int RayCastRenderHeight = 768/2;
 
         public GameEngine()
         {
@@ -138,10 +138,10 @@ namespace RayCasterGame
             _spriteBatch.Draw(
                 texture: _outputTexture,
                 destinationRectangle: new Rectangle(
-                    x: (ScreenWidth - RayCastRenderWidth) / 2,
+                    x: 0,
                     y: 0,
-                    width: RayCastRenderWidth,
-                    height: RayCastRenderHeight),
+                    width: ScreenWidth,
+                    height: ScreenHeight),
                 color: Color.White);
 
             _spriteBatch.End();
