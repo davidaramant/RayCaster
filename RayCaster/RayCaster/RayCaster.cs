@@ -162,24 +162,42 @@ namespace RayCasterGame
                 int drawEnd = lineHeight / 2 + buffer.Height / 2;
                 if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
-                //choose wall color
-                HsvColor color = _mapData.GetColor(mapPos);
 
-                var valueFactor = 1f;
+                var texture = _mapData.GetTexture(mapPos);
 
-                //give x and y sides different brightness
-                if (side == 1)
-                {
-                    valueFactor *= 0.75f;
-                }
+                //calculate value of wallX
+                double wallX; //where exactly the wall was hit
+                if (side == 1) wallX = rayPos.X + ((mapPos.Y - rayPos.Y + (1 - stepY) / 2) / rayDir.Y) * rayDir.X;
+                else wallX = rayPos.Y + ((mapPos.X - rayPos.X + (1 - stepX) / 2) / rayDir.X) * rayDir.Y;
+                wallX -= Math.Floor(wallX);
 
-                //shade by distance
-                valueFactor *= (float)Math.Min(1, 5.0 / perpWallDist);
-                color = color.ScaleValue(valueFactor);
+                //x coordinate on the texture
+                int texX = (int)(wallX * texture.Width);
+                if (side == 0 && rayDir.X > 0) texX = texture.Width - texX - 1;
+                if (side == 1 && rayDir.Y < 0) texX = texture.Width - texX - 1;
+
 
                 //draw the pixels of the stripe as a vertical line
-                for (int y = drawStart; y <= drawEnd; y++)
+                for (int y = drawStart; y < drawEnd; y++)
                 {
+                    int d = y * 256 - buffer.Height * 128 + lineHeight * 128;
+                    int texY = ((d * texture.Height) / lineHeight) / 256;
+
+                    var color = texture[texX, texY];
+
+                    var valueFactor = 1f;
+
+                    //give x and y sides different brightness
+                    if (side == 1)
+                    {
+                        valueFactor *= 0.75f;
+                    }
+
+                    //shade by distance
+                    valueFactor *= (float)Math.Min(1, 5.0 / perpWallDist);
+                    color = color.ScaleValue(valueFactor);
+                   
+                    
                     buffer[x, y] = color;
                 }
             }

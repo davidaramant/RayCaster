@@ -38,6 +38,8 @@ namespace RayCasterGame
             {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
         };
 
+        private readonly Texture _texture = new Texture();
+
         public bool IsEmpty(Position position)
         {
             return IsEmpty(position.X, position.Y);
@@ -46,6 +48,11 @@ namespace RayCasterGame
         public bool IsEmpty(int x, int y)
         {
             return _worldMap[x, y] == 0;
+        }
+
+        public Texture GetTexture(Position position)
+        {
+            return _texture;
         }
 
         public HsvColor GetColor( Position position )
