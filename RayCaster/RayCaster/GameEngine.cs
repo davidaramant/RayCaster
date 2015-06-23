@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Linq;
+using System;
 
 namespace RayCasterGame
 {
@@ -20,8 +22,8 @@ namespace RayCasterGame
         private const int ScreenWidth = 1024;
         private const int ScreenHeight = 768;
 
-        private const int RayCastRenderWidth = 1024/2;
-        private const int RayCastRenderHeight = 768/2;
+        private const int RayCastRenderWidth = 1024 / 2;
+        private const int RayCastRenderHeight = 768 / 2;
 
         public GameEngine()
         {
@@ -57,8 +59,28 @@ namespace RayCasterGame
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             _outputTexture = new Texture2D(_graphics.GraphicsDevice, width: RayCastRenderWidth, height: RayCastRenderHeight);
+
             _buffer = new ScreenBuffer(RayCastRenderWidth, RayCastRenderHeight);
-            _caster = new RayCaster();
+            
+
+            var texturesToLoad = new[]
+            {
+                "BROWN96",
+                "COMPTILE",
+                "STARGR2",
+                "STARTAN2",
+                "TEKWALL1",
+            };
+
+            var namedTextureResources = texturesToLoad.Select(name => Tuple.Create(name, Content.Load<Texture2D>("Textures/" + name)));
+
+            var namedTextures = namedTextureResources.Select(namedResource => new Texture(namedResource.Item1, namedResource.Item2));
+
+            Content.Unload();
+
+            var mapData = new MapData(namedTextures);
+
+            _caster = new RayCaster(mapData);
         }
 
         /// <summary>

@@ -7,6 +7,8 @@ namespace RayCasterGame
 {
     sealed class MapData
     {
+        private readonly Dictionary<string, Texture> _textureLibrary;
+
         const int _mapWidth = 24;
         const int _mapHeight = 24;
 
@@ -38,7 +40,12 @@ namespace RayCasterGame
             {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
         };
 
-        private readonly Texture _texture = new Texture();
+        public MapData( IEnumerable<Texture> textures )
+        {
+            _textureLibrary = textures.ToDictionary(tex => tex.Name, tex => tex);
+        }
+
+
 
         public bool IsEmpty(Position position)
         {
@@ -52,7 +59,14 @@ namespace RayCasterGame
 
         public Texture GetTexture(Position position)
         {
-            return _texture;
+            switch (_worldMap[position.X, position.Y])
+            {
+                case 1: return _textureLibrary["BROWN96"];
+                case 2: return _textureLibrary["COMPTILE"];
+                case 3: return _textureLibrary["STARGR2"];
+                case 4: return _textureLibrary["STARTAN2"];
+                default: return _textureLibrary["TEKWALL1"];
+            }
         }
 
         public HsvColor GetColor( Position position )

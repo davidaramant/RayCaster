@@ -9,7 +9,12 @@ namespace RayCasterGame
 {
     sealed class RayCaster
     {
-        MapData _mapData = new MapData();
+        MapData _mapData;
+
+        public RayCaster(MapData mapData )
+        {
+            _mapData = mapData;
+        }
 
         DoublePosition _playerPos = new DoublePosition { X = 22, Y = 12 };
         Vector2D _playerDirection = new Vector2D { X = -1, Y = 0 };

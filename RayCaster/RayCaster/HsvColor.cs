@@ -47,15 +47,35 @@ namespace RayCasterGame
             return new HsvColor(H, S, percentage * V);
         }
 
+        public static HsvColor FromPackedRgb(uint packedColor)
+        {
+            byte rByte = (byte)(packedColor & 0xFF);
+            byte gByte = (byte)(packedColor >> 8 & 0xFF);
+            byte bByte = (byte)(packedColor >> 16 & 0xFF);
+
+            float r = rByte / 255f;
+            float g = gByte / 255f;
+            float b = bByte / 255f;
+
+            return FromRgb(r, g, b);
+        }
+
         public static HsvColor FromRgb(Color color)
+        {
+            float r = color.R / 255f;
+            float g = color.G / 255f;
+            float b = color.B / 255f;
+
+            return FromRgb(r, g, b);
+        }
+
+        public static HsvColor FromRgb(float r, float g, float b)
         {
             float h = 0;
             float s = 0;
             float v = 0;
 
-            float r = color.R / 255f;
-            float g = color.G / 255f;
-            float b = color.B / 255f;
+
 
             var min = Math.Min(r, Math.Min(g, b));
             var max = Math.Max(r, Math.Max(g, b));
