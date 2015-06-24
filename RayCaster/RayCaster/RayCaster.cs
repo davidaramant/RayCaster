@@ -11,7 +11,7 @@ namespace RayCasterGame
     {
         MapData _mapData;
 
-        public RayCaster(MapData mapData )
+        public RayCaster(MapData mapData)
         {
             _mapData = mapData;
         }
@@ -107,6 +107,7 @@ namespace RayCasterGame
                 int stepX;
                 int stepY;
 
+                // TODO: Replace this stupid 'side' variable with an enum
                 bool hit = false; //was there a wall hit?
                 int side = 0; //was a NS or a EW wall hit?
                 //calculate step and initial sideDist
@@ -168,7 +169,7 @@ namespace RayCasterGame
                 if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
 
-                var texture = _mapData.GetTexture(mapPos);
+                var texture = _mapData.GetWallTexture(mapPos);
 
                 //calculate value of wallX
                 double wallX; //where exactly the wall was hit
@@ -199,11 +200,66 @@ namespace RayCasterGame
                     }
 
                     //shade by distance
-                    valueFactor *= (float)Math.Min(1, 5.0 / perpWallDist);
+                    valueFactor *= (float)Math.Min(1, 3.0 / perpWallDist);
                     color = color.ScaleValue(valueFactor);
-                   
-                    
+
+
                     buffer[x, y] = color;
+                }
+
+                //FLOOR CASTING
+                double floorXWall, floorYWall; //x, y position of the floor texel at the bottom of the wall
+
+                //4 different wall directions possible
+                if (side == 0 && rayDir.X > 0)
+                {
+                    floorXWall = mapPos.X;
+                    floorYWall = mapPos.Y + wallX;
+                }
+                else if (side == 0 && rayDir.X < 0)
+                {
+                    floorXWall = mapPos.X + 1.0;
+                    floorYWall = mapPos.Y + wallX;
+                }
+                else if (side == 1 && rayDir.Y > 0)
+                {
+                    floorXWall = mapPos.X + wallX;
+                    floorYWall = mapPos.Y;
+                }
+                else
+                {
+                    floorXWall = mapPos.X + wallX;
+                    floorYWall = mapPos.Y + 1.0;
+                }
+
+                double distWall, distPlayer, currentDist;
+
+                distWall = perpWallDist;
+                distPlayer = 0.0;
+
+                if (drawEnd < 0) drawEnd = buffer.Height; //becomes < 0 when the integer overflows
+
+                // This should pass in the map position of the ray
+                var floorTexture = _mapData.GetFloorTexture(mapPos);
+                var ceilingTexture = _mapData.GetCeilingTexture(mapPos);
+
+                //draw the floor from drawEnd to the bottom of the screen
+                for (int y = drawEnd + 1; y < buffer.Height; y++)
+                {
+                    currentDist = buffer.Height / (2.0 * y - buffer.Height); //you could make a small lookup table for this instead
+
+                    double weight = (currentDist - distPlayer) / (distWall - distPlayer);
+
+                    double currentFloorX = weight * floorXWall + (1.0 - weight) * _playerPos.X;
+                    double currentFloorY = weight * floorYWall + (1.0 - weight) * _playerPos.Y;
+
+                    int floorTexX = (int)((currentFloorX * floorTexture.Width) % floorTexture.Width);
+                    int floorTexY = (int)((currentFloorY * floorTexture.Height) % floorTexture.Height);
+
+                    //floor
+                    buffer[x, y] = floorTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
+                    //ceiling
+                    buffer[x, buffer.Height - y] = ceilingTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
                 }
             }
         }

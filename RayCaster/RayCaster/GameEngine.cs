@@ -11,6 +11,31 @@ namespace RayCasterGame
     /// </summary>
     public sealed class GameEngine : Game
     {
+        // STUFF TO DO:
+        // * Bound box for player so you don't get smashed up against wall
+        // * Replace use of Task Parallel Library
+        // ** Byte version of HSV Color?
+        // ** HLSL shader?
+        // ** System.Numerics.Vectors?
+        // ** CUDAfx?
+        // * Dynamic resolution (changing size of screen buffer at runtime)
+        // ** Dynamic detail?  Cut resolution by 2, 4, etc?
+        // * Full screen support
+        // * Sprite rendering
+        // * Weapon sprites
+        // * Text rendering (bitmap font)
+        // * Change view height (crouching/jumping)
+        // * Change rendering height (y-shearing - look up/down)
+        // * Taller levels
+        // * Skyboxes
+        // * View bobbing
+        // * Movement momentum
+        // * Variable floor/ceiling heights
+        // * Replace my Vector2D class and maybe the DoublePosition/Position classes
+        // * Do rotations and stuff better using the MonoGame vector/matrix stuff
+        // * Why does it calculate texture offsets beyond the bounds sometimes??????
+
+
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
 
@@ -22,8 +47,8 @@ namespace RayCasterGame
         private const int ScreenWidth = 1024;
         private const int ScreenHeight = 768;
 
-        private const int RayCastRenderWidth = 1024 / 2;
-        private const int RayCastRenderHeight = 768 / 2;
+        private const int RayCastRenderWidth = 1024/2;
+        private const int RayCastRenderHeight = 768/2;
 
         public GameEngine()
         {
@@ -62,7 +87,6 @@ namespace RayCasterGame
 
             _buffer = new ScreenBuffer(RayCastRenderWidth, RayCastRenderHeight);
             
-
             var texturesToLoad = new[]
             {
                 "BROWN96",
@@ -70,6 +94,9 @@ namespace RayCasterGame
                 "STARGR2",
                 "STARTAN2",
                 "TEKWALL1",
+
+                "FLOOR0_1",
+                "FLAT3",
             };
 
             var namedTextureResources = texturesToLoad.Select(name => Tuple.Create(name, Content.Load<Texture2D>("Textures/" + name)));

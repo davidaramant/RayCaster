@@ -57,7 +57,7 @@ namespace RayCasterGame
             return _worldMap[x, y] == 0;
         }
 
-        public Texture GetTexture(Position position)
+        public Texture GetWallTexture(Position position)
         {
             switch (_worldMap[position.X, position.Y])
             {
@@ -69,24 +69,14 @@ namespace RayCasterGame
             }
         }
 
-        public HsvColor GetColor( Position position )
+        public Texture GetFloorTexture(Position position)
         {
-            return GetColor(position.X, position.Y);
+            return _textureLibrary["FLAT3"];
         }
 
-        public HsvColor GetColor(int x, int y)
+        public Texture GetCeilingTexture(Position position)
         {
-            HsvColor color;
-            switch (_worldMap[x, y])
-            {
-                case 1: color = HsvColor.Red; break; //red
-                case 2: color = HsvColor.Green; break; //green
-                case 3: color = HsvColor.Blue; break; //blue
-                case 4: color = HsvColor.White; break; //white
-                default: color = HsvColor.Yellow; break; //yellow
-            }
-
-            return color;
+            return _textureLibrary["FLOOR0_1"];
         }
     }
 }
