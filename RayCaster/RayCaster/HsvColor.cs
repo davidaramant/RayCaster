@@ -47,6 +47,18 @@ namespace RayCasterGame
             return new HsvColor(H, S, percentage * V);
         }
 
+        public HsvColor Mutate(
+                            Func<float, float> hx = null,
+                            Func<float, float> sx = null,
+                            Func<float, float> vx = null)
+        {
+            Func<float, float> passthrough = _ => _;
+            hx = hx ?? passthrough;
+            vx = vx ?? passthrough;
+            sx = sx ?? passthrough;
+            return new HsvColor(hx(H), sx(S), vx(V));
+        }
+
         public static HsvColor FromPackedRgb(uint packedColor)
         {
             byte rByte = (byte)(packedColor & 0xFF);
@@ -137,10 +149,8 @@ namespace RayCasterGame
             }
 
             var hh = H;
-            if (hh >= 360f)
-            {
-                hh = 0;
-            }
+            while (hh < 0) hh += 360f;
+            while (hh >= 360f) hh -= 360f;
             hh /= 60f;
 
             var i = (long)hh;

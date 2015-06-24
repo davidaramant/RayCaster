@@ -34,6 +34,9 @@ namespace RayCasterGame
         // * Replace my Vector2D class and maybe the DoublePosition/Position classes
         // * Do rotations and stuff better using the MonoGame vector/matrix stuff
         // * Why does it calculate texture offsets beyond the bounds sometimes??????
+        // * "Light maps"
+        // * Water effect?
+        // * Map format with more metadata per sector
 
 
         GraphicsDeviceManager _graphics;
@@ -101,7 +104,7 @@ namespace RayCasterGame
 
             var namedTextureResources = texturesToLoad.Select(name => Tuple.Create(name, Content.Load<Texture2D>("Textures/" + name)));
 
-            var namedTextures = namedTextureResources.Select(namedResource => new Texture(namedResource.Item1, namedResource.Item2));
+            var namedTextures = namedTextureResources.Select(namedResource => Texture.FromTextureResource(namedResource.Item1, namedResource.Item2));
 
             Content.Unload();
 

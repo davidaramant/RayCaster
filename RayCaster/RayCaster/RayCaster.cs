@@ -239,10 +239,6 @@ namespace RayCasterGame
 
                 if (drawEnd < 0) drawEnd = buffer.Height; //becomes < 0 when the integer overflows
 
-                // This should pass in the map position of the ray
-                var floorTexture = _mapData.GetFloorTexture(mapPos);
-                var ceilingTexture = _mapData.GetCeilingTexture(mapPos);
-
                 //draw the floor from drawEnd to the bottom of the screen
                 for (int y = drawEnd + 1; y < buffer.Height; y++)
                 {
@@ -252,6 +248,9 @@ namespace RayCasterGame
 
                     double currentFloorX = weight * floorXWall + (1.0 - weight) * _playerPos.X;
                     double currentFloorY = weight * floorYWall + (1.0 - weight) * _playerPos.Y;
+
+                    var floorTexture = _mapData.GetFloorTexture(new Position { X = (int)currentFloorX, Y = (int)currentFloorY });
+                    var ceilingTexture = _mapData.GetCeilingTexture(new Position { X = (int)currentFloorX, Y = (int)currentFloorY });
 
                     int floorTexX = (int)((currentFloorX * floorTexture.Width) % floorTexture.Width);
                     int floorTexY = (int)((currentFloorY * floorTexture.Height) % floorTexture.Height);

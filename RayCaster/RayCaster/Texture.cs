@@ -19,45 +19,58 @@ namespace RayCasterGame
         public readonly int Height;
         public readonly int Width;
 
-        public Texture()
+        public static Texture GenerateTexture()
         {
-            Height = 64;
-            Width = 64;
+            int height = 64;
+            int width = 64;
 
-            _pixels = new HsvColor[64 * 64];
+            var pixels = new HsvColor[64 * 64];
 
-            for (int x = 0; x < Width; x++)
+            for (int x = 0; x < width; x++)
             {
-                for (int y = 0; y < Height; y++)
+                for (int y = 0; y < height; y++)
                 {
                     bool xOdd = (x / 8) % 2 == 1;
                     var yOdd = (y / 8) % 2 == 1;
 
-                    var hue = 360F * ((x + y) / (float)(Height + Width));
+                    var hue = 360F * ((x + y) / (float)(height + width));
 
-                    _pixels[y + x * Width] = new HsvColor(hue, 1f, xOdd ^ yOdd ? 1f : 0f);
+                    pixels[y + x * width] = new HsvColor(hue, 1f, xOdd ^ yOdd ? 1f : 0f);
                 }
             }
+
+            return new Texture("Ugly", width: width, height: height, pixels: pixels);
         }
 
-        public Texture(string name, Texture2D textureData)
+        public Texture( string name, int width, int height, HsvColor[] pixels)
         {
-            Name = name;
-            Height = textureData.Height;
-            Width = textureData.Width;
+            if( pixels.Length != width * height )
+            {
+                throw new ArgumentException("Pixel buffer of texture doesn't match size.");
+            }
 
-            var buffer = new uint[Height * Width];
+            Name = name;
+            Width = width;
+            Height = height;
+            _pixels = pixels;
+        }
+
+        public static Texture FromTextureResource(string name, Texture2D textureData)
+        {
+            var buffer = new uint[textureData.Height * textureData.Width];
             textureData.GetData(buffer);
 
-            _pixels = new HsvColor[Height * Width];
+            var pixels = new HsvColor[textureData.Height * textureData.Width];
 
-            for (int x = 0; x < Width; x++)
+            for (int x = 0; x < textureData.Width; x++)
             {
-                for (int y = 0; y < Height; y++)
+                for (int y = 0; y < textureData.Height; y++)
                 {
-                    _pixels[y + x * Width] = HsvColor.FromPackedRgb(buffer[x + y * Height]);
+                    pixels[y + x * textureData.Width] = HsvColor.FromPackedRgb(buffer[x + y * textureData.Height]);
                 }
             }
+
+            return new Texture(name, width: textureData.Width, height: textureData.Height, pixels: pixels);
         }
 
 
