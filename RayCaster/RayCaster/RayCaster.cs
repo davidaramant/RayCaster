@@ -54,7 +54,7 @@ namespace RayCasterGame
             {
                 _player.Rotate(rotSpeed);
             }
-        }       
+        }
 
         public void Render(ScreenBuffer buffer)
         {
@@ -82,54 +82,66 @@ namespace RayCasterGame
                 int stepX;
                 int stepY;
 
-                // TODO: Replace this stupid 'side' variable with an enum
-                bool hit = false; //was there a wall hit?
-                int side = 0; //was a NS or a EW wall hit?
+                bool wallHit = false;
+                // which side of the sector was hit
+                SectorSide sideHit = default(SectorSide);
+                
+                // Holds the possible north/south and east/west side that can be hit by this ray
+                SectorSide northSouthSideHit = default(SectorSide);
+                SectorSide eastWestSideHit = default(SectorSide);               
+
                 //calculate step and initial sideDist
+                
+                // Pointing left
                 if (rayDir.X < 0)
                 {
                     stepX = -1;
                     sideDistX = (rayPos.X - mapPos.X) * deltaDistX;
+                    northSouthSideHit = SectorSide.South;
                 }
-                else
+                else // pointing right
                 {
                     stepX = 1;
                     sideDistX = (mapPos.X + 1.0 - rayPos.X) * deltaDistX;
+                    northSouthSideHit = SectorSide.North;
                 }
-                if (rayDir.Y < 0)
+
+                if (rayDir.Y < 0) // Pointing up
                 {
                     stepY = -1;
                     sideDistY = (rayPos.Y - mapPos.Y) * deltaDistY;
+                    eastWestSideHit = SectorSide.East;
                 }
-                else
+                else // pointing down
                 {
                     stepY = 1;
                     sideDistY = (mapPos.Y + 1.0 - rayPos.Y) * deltaDistY;
+                    eastWestSideHit = SectorSide.West;
                 }
-                //perform DDA
-                while (!hit)
+
+                //perform DDA                               
+                while (!wallHit)
                 {
                     //jump to next map square, OR in x-direction, OR in y-direction
                     if (sideDistX < sideDistY)
                     {
                         sideDistX += deltaDistX;
                         mapPos.X += stepX;
-                        side = 0;
+                        //side = 0; // NS
+                        sideHit = northSouthSideHit;
                     }
                     else
                     {
                         sideDistY += deltaDistY;
                         mapPos.Y += stepY;
-                        side = 1;
+                        //side = 1; // EW
+                        sideHit = eastWestSideHit;
                     }
-                    //Check if ray has hit a wall
-                    if (!_mapData.IsEmpty(mapPos.X, mapPos.Y))
-                    {
-                        hit = true;
-                    }
+
+                    wallHit = !_mapData.IsEmpty(mapPos);
                 }
                 //Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
-                if (side == 0)
+                if (sideHit == northSouthSideHit)
                     perpWallDist = Math.Abs((mapPos.X - rayPos.X + (1 - stepX) / 2) / rayDir.X);
                 else
                     perpWallDist = Math.Abs((mapPos.Y - rayPos.Y + (1 - stepY) / 2) / rayDir.Y);
@@ -148,15 +160,16 @@ namespace RayCasterGame
 
                 //calculate value of wallX
                 double wallX; //where exactly the wall was hit
-                if (side == 1) wallX = rayPos.X + ((mapPos.Y - rayPos.Y + (1 - stepY) / 2) / rayDir.Y) * rayDir.X;
-                else wallX = rayPos.Y + ((mapPos.X - rayPos.X + (1 - stepX) / 2) / rayDir.X) * rayDir.Y;
+                if (sideHit == eastWestSideHit) 
+                    wallX = rayPos.X + ((mapPos.Y - rayPos.Y + (1 - stepY) / 2) / rayDir.Y) * rayDir.X;
+                else 
+                    wallX = rayPos.Y + ((mapPos.X - rayPos.X + (1 - stepX) / 2) / rayDir.X) * rayDir.Y;
                 wallX -= Math.Floor(wallX);
 
                 //x coordinate on the texture
                 int texX = (int)(wallX * texture.Width);
-                if (side == 0 && rayDir.X > 0) texX = texture.Width - texX - 1;
-                if (side == 1 && rayDir.Y < 0) texX = texture.Width - texX - 1;
-
+                if (sideHit == SectorSide.North || sideHit == SectorSide.East) 
+                    texX = texture.Width - texX - 1;
 
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y < drawEnd; y++)
@@ -169,7 +182,7 @@ namespace RayCasterGame
                     var valueFactor = 1f;
 
                     //give x and y sides different brightness
-                    if (side == 1)
+                    if (sideHit == eastWestSideHit)
                     {
                         valueFactor *= 0.75f;
                     }
@@ -178,7 +191,6 @@ namespace RayCasterGame
                     valueFactor *= (float)Math.Min(1, 3.0 / perpWallDist);
                     color = color.ScaleValue(valueFactor);
 
-
                     buffer[x, y] = color;
                 }
 
@@ -186,25 +198,25 @@ namespace RayCasterGame
                 double floorXWall, floorYWall; //x, y position of the floor texel at the bottom of the wall
 
                 //4 different wall directions possible
-                if (side == 0 && rayDir.X > 0)
+                switch (sideHit)
                 {
-                    floorXWall = mapPos.X;
-                    floorYWall = mapPos.Y + wallX;
-                }
-                else if (side == 0 && rayDir.X < 0)
-                {
-                    floorXWall = mapPos.X + 1.0;
-                    floorYWall = mapPos.Y + wallX;
-                }
-                else if (side == 1 && rayDir.Y > 0)
-                {
-                    floorXWall = mapPos.X + wallX;
-                    floorYWall = mapPos.Y;
-                }
-                else
-                {
-                    floorXWall = mapPos.X + wallX;
-                    floorYWall = mapPos.Y + 1.0;
+                    case SectorSide.North:
+                        floorXWall = mapPos.X;
+                        floorYWall = mapPos.Y + wallX;
+                        break;
+                    case SectorSide.South:
+                        floorXWall = mapPos.X + 1.0;
+                        floorYWall = mapPos.Y + wallX;
+                        break;
+                    case SectorSide.West:
+                        floorXWall = mapPos.X + wallX;
+                        floorYWall = mapPos.Y;
+                        break;
+                    case SectorSide.East:
+                    default:
+                        floorXWall = mapPos.X + wallX;
+                        floorYWall = mapPos.Y + 1.0;
+                        break;
                 }
 
                 double distWall, distPlayer, currentDist;
@@ -212,7 +224,8 @@ namespace RayCasterGame
                 distWall = perpWallDist;
                 distPlayer = 0.0;
 
-                if (drawEnd < 0) drawEnd = buffer.Height; //becomes < 0 when the integer overflows
+                if (drawEnd < 0) 
+                    drawEnd = buffer.Height; //becomes < 0 when the integer overflows
 
                 //draw the floor from drawEnd to the bottom of the screen
                 for (int y = drawEnd + 1; y < buffer.Height; y++)
