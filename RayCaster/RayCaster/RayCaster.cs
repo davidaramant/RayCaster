@@ -16,13 +16,6 @@ namespace RayCasterGame
             _mapData = mapData;
         }
 
-        sealed class PlayerInfo
-        {
-            public Vector2 Position = new Vector2(22.5f, 12.5f);
-            public Vector2 Direction = new Vector2(-1, 0);
-            public Vector2 CameraPlane = new Vector2(0, 0.66f);
-        }
-
         PlayerInfo _player = new PlayerInfo();
 
         public void Update(MovementInputs inputs, GameTime gameTime)
@@ -32,59 +25,36 @@ namespace RayCasterGame
 
             if (inputs.HasFlag(MovementInputs.Forward))
             {
-                Move(_player.Direction, moveSpeed);
+                _player.Move(_mapData, _player.Direction, moveSpeed);
             }
             else if (inputs.HasFlag(MovementInputs.Backward))
             {
                 var direction = new Vector2 { X = -_player.Direction.X, Y = -_player.Direction.Y };
 
-                Move(direction, moveSpeed);
+                _player.Move(_mapData, direction, moveSpeed);
             }
             if (inputs.HasFlag(MovementInputs.StrafeLeft))
             {
                 var direction = new Vector2 { X = -_player.Direction.Y, Y = _player.Direction.X };
 
-                Move(direction, moveSpeed);
+                _player.Move(_mapData, direction, moveSpeed);
             }
             else if (inputs.HasFlag(MovementInputs.StrafeRight))
             {
                 var direction = new Vector2 { X = _player.Direction.Y, Y = -_player.Direction.X };
 
-                Move(direction, moveSpeed);
+                _player.Move(_mapData, direction, moveSpeed);
             }
 
             if (inputs.HasFlag(MovementInputs.TurnRight))
             {
-                RotatePlayer(-rotSpeed);
+                _player.Rotate(-rotSpeed);
             }
             else if (inputs.HasFlag(MovementInputs.TurnLeft))
             {
-                RotatePlayer(rotSpeed);
+                _player.Rotate(rotSpeed);
             }
-        }
-
-        private void Move(Vector2 direction, float speed)
-        {
-            var movement = direction * speed;
-            var newPosition = _player.Position + movement;
-
-            if (_mapData.IsEmpty((int)newPosition.X, (int)_player.Position.Y))
-            {
-                _player.Position.X = newPosition.X;
-            }
-            if (_mapData.IsEmpty((int)_player.Position.X, (int)newPosition.Y))
-            {
-                _player.Position.Y = newPosition.Y;
-            }
-        }
-
-        private void RotatePlayer(float rotationRadians)
-        {
-            var rotation = Matrix.CreateRotationZ(rotationRadians);
-
-            _player.Direction = Vector2.Transform(_player.Direction, rotation);
-            _player.CameraPlane = Vector2.Transform(_player.CameraPlane, rotation);
-        }
+        }       
 
         public void Render(ScreenBuffer buffer)
         {

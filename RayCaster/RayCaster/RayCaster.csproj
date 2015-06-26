@@ -42,6 +42,7 @@
     <Compile Include="HsvColor.cs" />
     <Compile Include="MapData.cs" />
     <Compile Include="MovementInputs.cs" />
+    <Compile Include="PlayerInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RayCaster.cs" />
