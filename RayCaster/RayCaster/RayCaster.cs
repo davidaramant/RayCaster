@@ -16,65 +16,74 @@ namespace RayCasterGame
             _mapData = mapData;
         }
 
-        DoublePosition _playerPos = new DoublePosition { X = 22, Y = 12 };
-        Vector2D _playerDirection = new Vector2D { X = -1, Y = 0 };
-        Vector2D _cameraPlane = new Vector2D { X = 0, Y = 0.66 };
+        sealed class PlayerInfo
+        {
+            public Vector2 Position = new Vector2(22.5f, 12.5f);
+            public Vector2 Direction = new Vector2(-1, 0);
+            public Vector2 CameraPlane = new Vector2(0, 0.66f);
+        }
+
+        PlayerInfo _player = new PlayerInfo();
 
         public void Update(MovementInputs inputs, GameTime gameTime)
         {
-            var moveSpeed = 5.0 * (gameTime.ElapsedGameTime.Milliseconds / 1000.0);
-            var rotSpeed = 3.0 * (gameTime.ElapsedGameTime.Milliseconds / 1000.0);
+            var moveSpeed = 5.0f * (gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
+            var rotSpeed = 3.0f * (gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
 
             if (inputs.HasFlag(MovementInputs.Forward))
             {
-                Move(_playerDirection, moveSpeed);
+                Move(_player.Direction, moveSpeed);
             }
             else if (inputs.HasFlag(MovementInputs.Backward))
             {
-                var direction = new Vector2D { X = -_playerDirection.X, Y = -_playerDirection.Y };
+                var direction = new Vector2 { X = -_player.Direction.X, Y = -_player.Direction.Y };
 
                 Move(direction, moveSpeed);
             }
             if (inputs.HasFlag(MovementInputs.StrafeLeft))
             {
-                var direction = new Vector2D { X = -_playerDirection.Y, Y = _playerDirection.X };
+                var direction = new Vector2 { X = -_player.Direction.Y, Y = _player.Direction.X };
 
                 Move(direction, moveSpeed);
             }
             else if (inputs.HasFlag(MovementInputs.StrafeRight))
             {
-                var direction = new Vector2D { X = _playerDirection.Y, Y = -_playerDirection.X };
+                var direction = new Vector2 { X = _player.Direction.Y, Y = -_player.Direction.X };
 
                 Move(direction, moveSpeed);
             }
 
             if (inputs.HasFlag(MovementInputs.TurnRight))
             {
-                Rotate(-rotSpeed);
+                RotatePlayer(-rotSpeed);
             }
             else if (inputs.HasFlag(MovementInputs.TurnLeft))
             {
-                Rotate(rotSpeed);
+                RotatePlayer(rotSpeed);
             }
         }
 
-        private void Move(Vector2D direction, double speed)
+        private void Move(Vector2 direction, float speed)
         {
-            if (_mapData.IsEmpty((int)(_playerPos.X + direction.X * speed), (int)_playerPos.Y))
-                _playerPos.X += direction.X * speed;
-            if (_mapData.IsEmpty((int)_playerPos.X, (int)(_playerPos.Y + direction.Y * speed)))
-                _playerPos.Y += direction.Y * speed;
+            var movement = direction * speed;
+            var newPosition = _player.Position + movement;
+
+            if (_mapData.IsEmpty((int)newPosition.X, (int)_player.Position.Y))
+            {
+                _player.Position.X = newPosition.X;
+            }
+            if (_mapData.IsEmpty((int)_player.Position.X, (int)newPosition.Y))
+            {
+                _player.Position.Y = newPosition.Y;
+            }
         }
 
-        private void Rotate(double rotSpeed)
+        private void RotatePlayer(float rotationRadians)
         {
-            //both camera direction and camera plane must be rotated
-            double oldDirX = _playerDirection.X;
-            _playerDirection.X = _playerDirection.X * Math.Cos(rotSpeed) - _playerDirection.Y * Math.Sin(rotSpeed);
-            _playerDirection.Y = oldDirX * Math.Sin(rotSpeed) + _playerDirection.Y * Math.Cos(rotSpeed);
-            double oldPlaneX = _cameraPlane.X;
-            _cameraPlane.X = _cameraPlane.X * Math.Cos(rotSpeed) - _cameraPlane.Y * Math.Sin(rotSpeed);
-            _cameraPlane.Y = oldPlaneX * Math.Sin(rotSpeed) + _cameraPlane.Y * Math.Cos(rotSpeed);
+            var rotation = Matrix.CreateRotationZ(rotationRadians);
+
+            _player.Direction = Vector2.Transform(_player.Direction, rotation);
+            _player.CameraPlane = Vector2.Transform(_player.CameraPlane, rotation);
         }
 
         public void Render(ScreenBuffer buffer)
@@ -82,17 +91,13 @@ namespace RayCasterGame
             for (int x = 0; x < buffer.Width; x++)
             {
                 //calculate ray position and direction 
-                double cameraX = 2.0 * x / (double)buffer.Width - 1.0; //x-coordinate in camera space
-                var rayPos = _playerPos.Clone();
+                var cameraX = 2.0f * x / (float)buffer.Width - 1f; //x-coordinate in camera space
+                var rayPos = _player.Position;
 
-                var rayDir = new Vector2D
-                {
-                    X = _playerDirection.X + _cameraPlane.X * cameraX,
-                    Y = _playerDirection.Y + _cameraPlane.Y * cameraX
-                };
+                var rayDir = _player.Direction + _player.CameraPlane * cameraX;
 
                 //which box of the map we're in  
-                var mapPos = rayPos.TruncateToPosition();
+                var mapPos = new Point((int)rayPos.X, (int)rayPos.Y);
 
                 //length of ray from current position to next x or y-side
                 double sideDistX;
@@ -148,7 +153,7 @@ namespace RayCasterGame
                         side = 1;
                     }
                     //Check if ray has hit a wall
-                    if (!_mapData.IsEmpty(mapPos))
+                    if (!_mapData.IsEmpty(mapPos.X, mapPos.Y))
                     {
                         hit = true;
                     }
@@ -246,11 +251,11 @@ namespace RayCasterGame
 
                     double weight = (currentDist - distPlayer) / (distWall - distPlayer);
 
-                    double currentFloorX = weight * floorXWall + (1.0 - weight) * _playerPos.X;
-                    double currentFloorY = weight * floorYWall + (1.0 - weight) * _playerPos.Y;
+                    double currentFloorX = weight * floorXWall + (1.0 - weight) * _player.Position.X;
+                    double currentFloorY = weight * floorYWall + (1.0 - weight) * _player.Position.Y;
 
-                    var floorTexture = _mapData.GetFloorTexture(new Position { X = (int)currentFloorX, Y = (int)currentFloorY });
-                    var ceilingTexture = _mapData.GetCeilingTexture(new Position { X = (int)currentFloorX, Y = (int)currentFloorY });
+                    var floorTexture = _mapData.GetFloorTexture(new Point { X = (int)currentFloorX, Y = (int)currentFloorY });
+                    var ceilingTexture = _mapData.GetCeilingTexture(new Point { X = (int)currentFloorX, Y = (int)currentFloorY });
 
                     int floorTexX = (int)((currentFloorX * floorTexture.Width) % floorTexture.Width);
                     int floorTexY = (int)((currentFloorY * floorTexture.Height) % floorTexture.Height);

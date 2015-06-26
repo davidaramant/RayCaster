@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Xna.Framework;
 
 namespace RayCasterGame
 {
@@ -69,7 +70,7 @@ namespace RayCasterGame
         }
 
 
-        public bool IsEmpty(Position position)
+        public bool IsEmpty(Point position)
         {
             return IsEmpty(position.X, position.Y);
         }
@@ -81,7 +82,7 @@ namespace RayCasterGame
                 _worldMap[x, y] == 9;
         }
 
-        public Texture GetWallTexture(Position position)
+        public Texture GetWallTexture(Point position)
         {
             switch (_worldMap[position.X, position.Y])
             {
@@ -93,7 +94,7 @@ namespace RayCasterGame
             }
         }
 
-        public Texture GetFloorTexture(Position position)
+        public Texture GetFloorTexture(Point position)
         {
             switch (_worldMap[position.X, position.Y])
             {
@@ -104,7 +105,7 @@ namespace RayCasterGame
             }
         }
 
-        public Texture GetCeilingTexture(Position position)
+        public Texture GetCeilingTexture(Point position)
         {
             switch (_worldMap[position.X, position.Y])
             {
