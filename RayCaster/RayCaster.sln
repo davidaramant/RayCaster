@@ -7,14 +7,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RayCaster", "RayCaster\RayC
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Debug|x86.ActiveCfg = Debug|x86
-		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Debug|x86.Build.0 = Debug|x86
-		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Release|x86.ActiveCfg = Release|x86
-		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Release|x86.Build.0 = Release|x86
+		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Debug|x64.ActiveCfg = Debug|x64
+		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Debug|x64.Build.0 = Debug|x64
+		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Debug|x86.ActiveCfg = Debug|x64
+		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Release|x64.ActiveCfg = Release|x64
+		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Release|x64.Build.0 = Release|x64
+		{A9A67BB6-FC20-4DBB-B8EB-30CC84A85DC8}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

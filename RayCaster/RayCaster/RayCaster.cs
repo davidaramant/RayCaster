@@ -58,7 +58,8 @@ namespace RayCasterGame
 
         public void Render(ScreenBuffer buffer)
         {
-            for (int x = 0; x < buffer.Width; x++)
+            System.Threading.Tasks.Parallel.For(0, buffer.Width, x =>
+            //for (int x = 0; x < buffer.Width; x++)
             {
                 //calculate ray position and direction 
                 var cameraX = 2.0f * x / (float)buffer.Width - 1f; //x-coordinate in camera space
@@ -85,13 +86,13 @@ namespace RayCasterGame
                 bool wallHit = false;
                 // which side of the sector was hit
                 SectorSide sideHit = default(SectorSide);
-                
+
                 // Holds the possible north/south and east/west side that can be hit by this ray
                 SectorSide northSouthSideHit = default(SectorSide);
-                SectorSide eastWestSideHit = default(SectorSide);               
+                SectorSide eastWestSideHit = default(SectorSide);
 
                 //calculate step and initial sideDist
-                
+
                 // Pointing left
                 if (rayDir.X < 0)
                 {
@@ -160,15 +161,15 @@ namespace RayCasterGame
 
                 //calculate value of wallX
                 double wallX; //where exactly the wall was hit
-                if (sideHit == eastWestSideHit) 
+                if (sideHit == eastWestSideHit)
                     wallX = rayPos.X + ((mapPos.Y - rayPos.Y + (1 - stepY) / 2) / rayDir.Y) * rayDir.X;
-                else 
+                else
                     wallX = rayPos.Y + ((mapPos.X - rayPos.X + (1 - stepX) / 2) / rayDir.X) * rayDir.Y;
                 wallX -= Math.Floor(wallX);
 
                 //x coordinate on the texture
                 int texX = (int)(wallX * texture.Width);
-                if (sideHit == SectorSide.North || sideHit == SectorSide.East) 
+                if (sideHit == SectorSide.North || sideHit == SectorSide.East)
                     texX = texture.Width - texX - 1;
 
                 //draw the pixels of the stripe as a vertical line
@@ -224,7 +225,7 @@ namespace RayCasterGame
                 distWall = perpWallDist;
                 distPlayer = 0.0;
 
-                if (drawEnd < 0) 
+                if (drawEnd < 0)
                     drawEnd = buffer.Height; //becomes < 0 when the integer overflows
 
                 //draw the floor from drawEnd to the bottom of the screen
@@ -248,7 +249,7 @@ namespace RayCasterGame
                     //ceiling
                     buffer[x, buffer.Height - y] = ceilingTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
                 }
-            }
+            });
         }
     }
 }
