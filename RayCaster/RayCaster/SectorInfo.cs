@@ -48,7 +48,7 @@
         {
             if (_lightLevel <= 1)
             {
-                return color.ScaleValue((float)System.Math.Min(1f, 6 * _lightLevel / distance));
+                return color.ScaleValue(_lightLevel);
             }
             else
             {
