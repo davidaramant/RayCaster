@@ -63,7 +63,7 @@ namespace RayCasterGame
             {
                 //calculate ray position and direction 
                 //x-coordinate in camera space
-                var cameraX = 2.0f * (buffer.Width - column) / (float)buffer.Width - 1f; 
+                var cameraX = 2.0f * (buffer.Width - column) / (float)buffer.Width - 1f;
                 var rayPos = _player.Position;
 
                 var rayDir = _player.Direction + _player.CameraPlane * cameraX;
@@ -138,7 +138,7 @@ namespace RayCasterGame
                         sideHit = northSouthSideHit;
                     }
 
-                    wallHit = !_mapData.IsEmpty(mapPos);
+                    wallHit = _mapData.HasWalls(mapPos);
                 }
                 //Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
                 if (sideHit == eastWestSideHit)
@@ -155,8 +155,8 @@ namespace RayCasterGame
                 int drawEnd = lineHeight / 2 + buffer.Height / 2;
                 if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
-
-                var texture = _mapData.GetWallTexture(mapPos);
+                var sectorHit = _mapData.GetSectorInfo(mapPos);
+                var texture = sectorHit.GetWallTexture(sideHit);
 
                 //calculate value of wallX
                 double wallX; //where exactly the wall was hit
@@ -235,16 +235,15 @@ namespace RayCasterGame
                     double currentFloorX = weight * floorXWall + (1.0 - weight) * _player.Position.X;
                     double currentFloorY = weight * floorYWall + (1.0 - weight) * _player.Position.Y;
 
-                    var floorTexture = _mapData.GetFloorTexture(new Point { X = (int)currentFloorX, Y = (int)currentFloorY });
-                    var ceilingTexture = _mapData.GetCeilingTexture(new Point { X = (int)currentFloorX, Y = (int)currentFloorY });
+                    var sectorToDraw = _mapData.GetSectorInfo(new Point { X = (int)currentFloorX, Y = (int)currentFloorY });
 
-                    int floorTexX = (int)((currentFloorX * floorTexture.Width) % floorTexture.Width);
-                    int floorTexY = (int)((currentFloorY * floorTexture.Height) % floorTexture.Height);
+                    int floorTexX = (int)((currentFloorX * sectorToDraw.FloorTexture.Width) % sectorToDraw.FloorTexture.Width);
+                    int floorTexY = (int)((currentFloorY * sectorToDraw.FloorTexture.Height) % sectorToDraw.FloorTexture.Height);
 
                     //floor
-                    buffer[column, y] = floorTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
+                    buffer[column, y] = sectorToDraw.FloorTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
                     //ceiling
-                    buffer[column, buffer.Height - y] = ceilingTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
+                    buffer[column, buffer.Height - y] = sectorToDraw.CeilingTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
                 }
             });
         }

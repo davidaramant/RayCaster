@@ -31,11 +31,9 @@ namespace RayCasterGame
         // * View bobbing
         // * Movement momentum
         // * Variable floor/ceiling heights
-        // * Do rotations and stuff better using the MonoGame vector/matrix stuff
         // * Why does it calculate texture offsets beyond the bounds sometimes??????
         // * "Light maps"
         // * Water effect?
-        // * Map format with more metadata per sector
         // * Doors
         // * Transparent glass
         // * Texture warping (Quake-style)

@@ -14,11 +14,11 @@ namespace RayCasterGame
             var movement = direction * speed;
             var newPosition = Position + movement;
 
-            if (mapData.IsEmpty((int)newPosition.X, (int)Position.Y))
+            if (mapData.IsPassable((int)newPosition.X, (int)Position.Y))
             {
                 Position.X = newPosition.X;
             }
-            if (mapData.IsEmpty((int)Position.X, (int)newPosition.Y))
+            if (mapData.IsPassable((int)Position.X, (int)newPosition.Y))
             {
                 Position.Y = newPosition.Y;
             }
