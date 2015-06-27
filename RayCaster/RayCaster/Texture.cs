@@ -9,6 +9,8 @@ namespace RayCasterGame
 {
     sealed class Texture
     {
+        public static readonly Texture Empty = new Texture("empty", 0, 0, new HsvColor[0]);
+
         public readonly string Name = "Ugly";
 
         /// <summary>
@@ -42,9 +44,9 @@ namespace RayCasterGame
             return new Texture("Ugly", width: width, height: height, pixels: pixels);
         }
 
-        public Texture( string name, int width, int height, HsvColor[] pixels)
+        public Texture(string name, int width, int height, HsvColor[] pixels)
         {
-            if( pixels.Length != width * height )
+            if (pixels.Length != width * height)
             {
                 throw new ArgumentException("Pixel buffer of texture doesn't match size.");
             }
@@ -52,7 +54,15 @@ namespace RayCasterGame
             Name = name;
             Width = width;
             Height = height;
-            _pixels = pixels;
+
+            if (Width == 0 || Height == 0)
+            {
+                _pixels = new HsvColor[1];
+            }
+            else
+            {
+                _pixels = pixels;
+            }
         }
 
         public static Texture FromTextureResource(string name, Texture2D textureData)

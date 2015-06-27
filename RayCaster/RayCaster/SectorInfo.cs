@@ -21,10 +21,10 @@
             get
             {
                 return
-                    _northTexture != null &&
-                    _southTexture != null &&
-                    _westTexture != null &&
-                    _eastTexture != null;
+                    _northTexture !=  Texture.Empty &&
+                    _southTexture != Texture.Empty &&
+                    _westTexture != Texture.Empty &&
+                    _eastTexture != Texture.Empty;
             }
         }
 
@@ -85,12 +85,12 @@
             Texture ceilingTexture = null)
         {
             _lightLevel = lightLevel;
-            FloorTexture = floorTexture;
-            CeilingTexture = ceilingTexture;
-            _northTexture = northTexture;
-            _southTexture = southTexture;
-            _westTexture = westTexture;
-            _eastTexture = eastTexture;
+            FloorTexture = floorTexture ?? Texture.Empty;
+            CeilingTexture = ceilingTexture ?? Texture.Empty;
+            _northTexture = northTexture ?? Texture.Empty;
+            _southTexture = southTexture ?? Texture.Empty;
+            _westTexture = westTexture ?? Texture.Empty;
+            _eastTexture = eastTexture ?? Texture.Empty;
 
             Passable = passable;
         }
