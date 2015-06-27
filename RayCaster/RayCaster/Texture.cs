@@ -9,7 +9,7 @@ namespace RayCasterGame
 {
     sealed class Texture
     {
-        public static readonly Texture Empty = new Texture("empty", 0, 0, new HsvColor[0]);
+        public static readonly Texture Empty = new Texture("empty", 1, 1, new HsvColor[1]);
 
         public readonly string Name = "Ugly";
 
@@ -54,15 +54,7 @@ namespace RayCasterGame
             Name = name;
             Width = width;
             Height = height;
-
-            if (Width == 0 || Height == 0)
-            {
-                _pixels = new HsvColor[1];
-            }
-            else
-            {
-                _pixels = pixels;
-            }
+            _pixels = pixels;
         }
 
         public static Texture FromTextureResource(string name, Texture2D textureData)
