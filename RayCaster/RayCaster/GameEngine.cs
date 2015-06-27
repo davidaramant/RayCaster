@@ -44,13 +44,15 @@ namespace RayCasterGame
         ScreenBuffer _buffer;
 
         Texture2D _outputTexture;
-        RayCaster _caster;
+        Renderer _caster;
+        PlayerInfo _player;
+        MapData _mapData;
 
         private const int ScreenWidth = 1024;
         private const int ScreenHeight = 768;
 
-        private const int RayCastRenderWidth = 1024/2;
-        private const int RayCastRenderHeight = 768/2;
+        private const int RayCastRenderWidth = 1024 / 2;
+        private const int RayCastRenderHeight = 768 / 2;
 
         public GameEngine()
         {
@@ -88,7 +90,7 @@ namespace RayCasterGame
             _outputTexture = new Texture2D(_graphics.GraphicsDevice, width: RayCastRenderWidth, height: RayCastRenderHeight);
 
             _buffer = new ScreenBuffer(RayCastRenderWidth, RayCastRenderHeight);
-            
+
             var texturesToLoad = new[]
             {
                 "BROWN96",
@@ -107,9 +109,10 @@ namespace RayCasterGame
 
             Content.Unload();
 
-            var mapData = new MapData(namedTextures);
+            _player = new PlayerInfo();
+            _mapData = new MapData(namedTextures);
 
-            _caster = new RayCaster(mapData);
+            _caster = new Renderer(_player, _mapData);
         }
 
         /// <summary>
@@ -164,7 +167,8 @@ namespace RayCasterGame
                 inputs |= MovementInputs.StrafeRight;
             }
 
-            _caster.Update(inputs, gameTime);
+
+            _player.Update(_mapData, inputs, gameTime);
 
             base.Update(gameTime);
         }

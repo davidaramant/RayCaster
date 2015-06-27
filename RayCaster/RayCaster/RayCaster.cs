@@ -7,53 +7,15 @@ using Microsoft.Xna.Framework;
 
 namespace RayCasterGame
 {
-    sealed class RayCaster
+    sealed class Renderer
     {
+        PlayerInfo _player;
         MapData _mapData;
 
-        public RayCaster(MapData mapData)
+        public Renderer(PlayerInfo player, MapData mapData)
         {
+            _player = player;
             _mapData = mapData;
-        }
-
-        PlayerInfo _player = new PlayerInfo();
-
-        public void Update(MovementInputs inputs, GameTime gameTime)
-        {
-            var moveSpeed = 5.0f * (gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
-            var rotSpeed = 3.0f * (gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
-
-            if (inputs.HasFlag(MovementInputs.Forward))
-            {
-                _player.Move(_mapData, _player.Direction, moveSpeed);
-            }
-            else if (inputs.HasFlag(MovementInputs.Backward))
-            {
-                var direction = new Vector2 { X = -_player.Direction.X, Y = -_player.Direction.Y };
-
-                _player.Move(_mapData, direction, moveSpeed);
-            }
-            if (inputs.HasFlag(MovementInputs.StrafeLeft))
-            {
-                var direction = new Vector2 { X = _player.Direction.Y, Y = -_player.Direction.X };
-
-                _player.Move(_mapData, direction, moveSpeed);
-            }
-            else if (inputs.HasFlag(MovementInputs.StrafeRight))
-            {
-                var direction = new Vector2 { X = -_player.Direction.Y, Y = _player.Direction.X };
-
-                _player.Move(_mapData, direction, moveSpeed);
-            }
-
-            if (inputs.HasFlag(MovementInputs.TurnRight))
-            {
-                _player.Rotate(rotSpeed);
-            }
-            else if (inputs.HasFlag(MovementInputs.TurnLeft))
-            {
-                _player.Rotate(-rotSpeed);
-            }
         }
 
         public void Render(ScreenBuffer buffer)

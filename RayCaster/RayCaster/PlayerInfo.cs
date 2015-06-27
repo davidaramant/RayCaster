@@ -10,6 +10,44 @@ namespace RayCasterGame
 
         private float _radius = 0.25f;
 
+        public void Update(MapData mapData, MovementInputs inputs, GameTime gameTime)
+        {
+            var moveSpeed = 5.0f * (gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
+            var rotSpeed = 3.0f * (gameTime.ElapsedGameTime.Milliseconds / 1000.0f);
+
+            if (inputs.HasFlag(MovementInputs.Forward))
+            {
+                Move(mapData, Direction, moveSpeed);
+            }
+            else if (inputs.HasFlag(MovementInputs.Backward))
+            {
+                var direction = new Vector2 { X = -Direction.X, Y = -Direction.Y };
+
+                Move(mapData, direction, moveSpeed);
+            }
+            if (inputs.HasFlag(MovementInputs.StrafeLeft))
+            {
+                var direction = new Vector2 { X = Direction.Y, Y = -Direction.X };
+
+                Move(mapData, direction, moveSpeed);
+            }
+            else if (inputs.HasFlag(MovementInputs.StrafeRight))
+            {
+                var direction = new Vector2 { X = -Direction.Y, Y = Direction.X };
+
+                Move(mapData, direction, moveSpeed);
+            }
+
+            if (inputs.HasFlag(MovementInputs.TurnRight))
+            {
+                Rotate(rotSpeed);
+            }
+            else if (inputs.HasFlag(MovementInputs.TurnLeft))
+            {
+                Rotate(-rotSpeed);
+            }
+        }
+
         public void Move(MapData mapData, Vector2 direction, float speed)
         {
             // Should MapData be passed in here?  Feels odd...
