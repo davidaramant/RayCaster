@@ -35,34 +35,35 @@ namespace RayCasterGame
             }
             if (inputs.HasFlag(MovementInputs.StrafeLeft))
             {
-                var direction = new Vector2 { X = -_player.Direction.Y, Y = _player.Direction.X };
+                var direction = new Vector2 { X = _player.Direction.Y, Y = -_player.Direction.X };
 
                 _player.Move(_mapData, direction, moveSpeed);
             }
             else if (inputs.HasFlag(MovementInputs.StrafeRight))
             {
-                var direction = new Vector2 { X = _player.Direction.Y, Y = -_player.Direction.X };
+                var direction = new Vector2 { X = -_player.Direction.Y, Y = _player.Direction.X };
 
                 _player.Move(_mapData, direction, moveSpeed);
             }
 
             if (inputs.HasFlag(MovementInputs.TurnRight))
             {
-                _player.Rotate(-rotSpeed);
+                _player.Rotate(rotSpeed);
             }
             else if (inputs.HasFlag(MovementInputs.TurnLeft))
             {
-                _player.Rotate(rotSpeed);
+                _player.Rotate(-rotSpeed);
             }
         }
 
         public void Render(ScreenBuffer buffer)
         {
-            System.Threading.Tasks.Parallel.For(0, buffer.Width, x =>
-            //for (int x = 0; x < buffer.Width; x++)
+            System.Threading.Tasks.Parallel.For(0, buffer.Width, column =>
+            //for (int column = 0; column < buffer.Width; column++)
             {
                 //calculate ray position and direction 
-                var cameraX = 2.0f * x / (float)buffer.Width - 1f; //x-coordinate in camera space
+                //x-coordinate in camera space
+                var cameraX = 2.0f * (buffer.Width - column) / (float)buffer.Width - 1f; 
                 var rayPos = _player.Position;
 
                 var rayDir = _player.Direction + _player.CameraPlane * cameraX;
@@ -98,26 +99,26 @@ namespace RayCasterGame
                 {
                     stepX = -1;
                     sideDistX = (rayPos.X - mapPos.X) * deltaDistX;
-                    northSouthSideHit = SectorSide.South;
+                    eastWestSideHit = SectorSide.East;
                 }
                 else // pointing right
                 {
                     stepX = 1;
                     sideDistX = (mapPos.X + 1.0 - rayPos.X) * deltaDistX;
-                    northSouthSideHit = SectorSide.North;
+                    eastWestSideHit = SectorSide.West;
                 }
 
                 if (rayDir.Y < 0) // Pointing up
                 {
                     stepY = -1;
                     sideDistY = (rayPos.Y - mapPos.Y) * deltaDistY;
-                    eastWestSideHit = SectorSide.East;
+                    northSouthSideHit = SectorSide.South;
                 }
                 else // pointing down
                 {
                     stepY = 1;
                     sideDistY = (mapPos.Y + 1.0 - rayPos.Y) * deltaDistY;
-                    eastWestSideHit = SectorSide.West;
+                    northSouthSideHit = SectorSide.North;
                 }
 
                 //perform DDA                               
@@ -128,21 +129,19 @@ namespace RayCasterGame
                     {
                         sideDistX += deltaDistX;
                         mapPos.X += stepX;
-                        //side = 0; // NS
-                        sideHit = northSouthSideHit;
+                        sideHit = eastWestSideHit;
                     }
                     else
                     {
                         sideDistY += deltaDistY;
                         mapPos.Y += stepY;
-                        //side = 1; // EW
-                        sideHit = eastWestSideHit;
+                        sideHit = northSouthSideHit;
                     }
 
                     wallHit = !_mapData.IsEmpty(mapPos);
                 }
                 //Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
-                if (sideHit == northSouthSideHit)
+                if (sideHit == eastWestSideHit)
                     perpWallDist = Math.Abs((mapPos.X - rayPos.X + (1 - stepX) / 2) / rayDir.X);
                 else
                     perpWallDist = Math.Abs((mapPos.Y - rayPos.Y + (1 - stepY) / 2) / rayDir.Y);
@@ -161,7 +160,7 @@ namespace RayCasterGame
 
                 //calculate value of wallX
                 double wallX; //where exactly the wall was hit
-                if (sideHit == eastWestSideHit)
+                if (sideHit == northSouthSideHit)
                     wallX = rayPos.X + ((mapPos.Y - rayPos.Y + (1 - stepY) / 2) / rayDir.Y) * rayDir.X;
                 else
                     wallX = rayPos.Y + ((mapPos.X - rayPos.X + (1 - stepX) / 2) / rayDir.X) * rayDir.Y;
@@ -169,8 +168,6 @@ namespace RayCasterGame
 
                 //x coordinate on the texture
                 int texX = (int)(wallX * texture.Width);
-                if (sideHit == SectorSide.North || sideHit == SectorSide.East)
-                    texX = texture.Width - texX - 1;
 
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y < drawEnd; y++)
@@ -183,7 +180,7 @@ namespace RayCasterGame
                     var valueFactor = 1f;
 
                     //give x and y sides different brightness
-                    if (sideHit == eastWestSideHit)
+                    if (sideHit == northSouthSideHit)
                     {
                         valueFactor *= 0.75f;
                     }
@@ -192,7 +189,7 @@ namespace RayCasterGame
                     valueFactor *= (float)Math.Min(1, 3.0 / perpWallDist);
                     color = color.ScaleValue(valueFactor);
 
-                    buffer[x, y] = color;
+                    buffer[column, y] = color;
                 }
 
                 //FLOOR CASTING
@@ -201,22 +198,22 @@ namespace RayCasterGame
                 //4 different wall directions possible
                 switch (sideHit)
                 {
-                    case SectorSide.North:
+                    case SectorSide.West:
                         floorXWall = mapPos.X;
                         floorYWall = mapPos.Y + wallX;
                         break;
-                    case SectorSide.South:
+                    case SectorSide.East:
                         floorXWall = mapPos.X + 1.0;
                         floorYWall = mapPos.Y + wallX;
                         break;
-                    case SectorSide.West:
-                        floorXWall = mapPos.X + wallX;
-                        floorYWall = mapPos.Y;
-                        break;
-                    case SectorSide.East:
-                    default:
+                    case SectorSide.South:
                         floorXWall = mapPos.X + wallX;
                         floorYWall = mapPos.Y + 1.0;
+                        break;
+                    case SectorSide.North:
+                    default:
+                        floorXWall = mapPos.X + wallX;
+                        floorYWall = mapPos.Y;
                         break;
                 }
 
@@ -245,9 +242,9 @@ namespace RayCasterGame
                     int floorTexY = (int)((currentFloorY * floorTexture.Height) % floorTexture.Height);
 
                     //floor
-                    buffer[x, y] = floorTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
+                    buffer[column, y] = floorTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
                     //ceiling
-                    buffer[x, buffer.Height - y] = ceilingTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
+                    buffer[column, buffer.Height - y] = ceilingTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
                 }
             });
         }

@@ -4,7 +4,7 @@ namespace RayCasterGame
 {
     sealed class PlayerInfo
     {
-        public Vector2 Position = new Vector2(22.5f, 12.5f);
+        public Vector2 Position = new Vector2(22.5f, 10.5f);
         public Vector2 Direction = new Vector2(-1, 0);
         public Vector2 CameraPlane = new Vector2(0, 0.66f); // TODO: Figure this out
 
