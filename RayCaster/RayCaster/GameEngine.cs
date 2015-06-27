@@ -182,7 +182,8 @@ namespace RayCasterGame
                 depthStencilState: DepthStencilState.None,
                 rasterizerState: RasterizerState.CullNone);
 
-            _buffer.Clear();
+            // Clearing the buffer isn't needed since every pixel in the buffer is being drawn by the renderer
+            //_buffer.Clear();
             _caster.Render(_buffer);
             _buffer.CopyToTexture(_outputTexture);
 
