@@ -8,17 +8,20 @@ namespace RayCasterGame
         public Vector2 Direction = new Vector2(-1, 0);
         public Vector2 CameraPlane = new Vector2(0, 0.66f); // TODO: Figure this out
 
+        private float _radius = 0.25f;
+
         public void Move(MapData mapData, Vector2 direction, float speed)
         {
             // Should MapData be passed in here?  Feels odd...
             var movement = direction * speed;
             var newPosition = Position + movement;
+            var newBoundingEdge = newPosition + direction * _radius;
 
-            if (mapData.IsPassable((int)newPosition.X, (int)Position.Y))
+            if (mapData.IsPassable((int)newBoundingEdge.X, (int)Position.Y))
             {
                 Position.X = newPosition.X;
             }
-            if (mapData.IsPassable((int)Position.X, (int)newPosition.Y))
+            if (mapData.IsPassable((int)Position.X, (int)newBoundingEdge.Y))
             {
                 Position.Y = newPosition.Y;
             }

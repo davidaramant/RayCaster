@@ -12,7 +12,6 @@ namespace RayCasterGame
     public sealed class GameEngine : Game
     {
         // STUFF TO DO:
-        // * Bounding box/circle for player so you don't get smashed up against wall
         // * Replace use of Task Parallel Library
         // ** Byte version of HSV Color?
         // ** HLSL shader?

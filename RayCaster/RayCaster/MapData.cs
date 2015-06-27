@@ -69,7 +69,7 @@ namespace RayCasterGame
             {
                 case '1':
                     return new SectorInfo(
-                        wallTexture: textureLibrary["BROWN96"] );
+                        wallTexture: textureLibrary["BROWN96"]);
 
                 case '2':
                     return new SectorInfo(
@@ -96,8 +96,8 @@ namespace RayCasterGame
                         southTexture: textureLibrary["FLOOR0_1"],
                         westTexture: textureLibrary["FLAT3"],
                         eastTexture: textureLibrary["FLAT3"],
-                        passable:true);
-                
+                        passable: true);
+
                 case '+':
                     return new SectorInfo(
                         lightLevel: 0.5f,
@@ -150,6 +150,12 @@ namespace RayCasterGame
 
         public bool IsPassable(int x, int y)
         {
+            // Because of bounding boxes, the position passed in may be outside the bounds of the map
+            if (IsInvalidPosition(x, y))
+            {
+                return false;
+            }
+
             return _sectors[PositionToIndex(x, y)].Passable;
         }
 
@@ -158,9 +164,9 @@ namespace RayCasterGame
             return _sectors[PositionToIndex(position)];
         }
 
-        public SectorInfo GetSectorInfo(Point position, SectorSide side )
+        public SectorInfo GetSectorInfo(Point position, SectorSide side)
         {
-            switch(side)
+            switch (side)
             {
                 case SectorSide.North:
                     position = new Point(position.X, position.Y - 1);
@@ -180,6 +186,11 @@ namespace RayCasterGame
             return _sectors[PositionToIndex(position)];
         }
 
+
+        private static bool IsInvalidPosition(int x, int y)
+        {
+            return x < 0 || x >= _mapWidth || y < 0 || y >= _mapHeight;
+        }
 
         private static int PositionToIndex(int x, int y)
         {
