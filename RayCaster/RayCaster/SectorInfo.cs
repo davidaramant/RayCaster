@@ -12,6 +12,10 @@
         private readonly Texture _westTexture;
         private readonly Texture _eastTexture;
 
+        // 0 - 2
+        // 0 is dark, 1 is fullbright, 2 is overbright
+        private readonly float _lightLevel;
+
         public bool HasWalls
         {
             get
@@ -40,15 +44,47 @@
             }
         }
 
+        public HsvColor Shade(HsvColor color, double distance)
+        {
+            if (_lightLevel <= 1)
+            {
+                return color.ScaleValue((float)System.Math.Min(1f, 6 * _lightLevel / distance));
+            }
+            else
+            {
+                return color.Mutate(vx: v => 1f, sx: s => System.Math.Min(1, s * _lightLevel));
+            }
+        }
+
+        public SectorInfo(
+            Texture wallTexture,
+            Texture floorTexture = null,
+            Texture ceilingTexture = null,
+            float lightLevel = 1f,
+            bool passable = false)
+            : this(
+                lightLevel: lightLevel,
+                northTexture: wallTexture,
+                southTexture: wallTexture,
+                westTexture: wallTexture,
+                eastTexture: wallTexture,
+                passable: passable,
+                floorTexture: floorTexture,
+                ceilingTexture: ceilingTexture)
+        {
+        }
+
         public SectorInfo(
             Texture northTexture,
             Texture southTexture,
             Texture westTexture,
             Texture eastTexture,
+            float lightLevel = 1f,
             bool passable = false,
             Texture floorTexture = null,
             Texture ceilingTexture = null)
         {
+            _lightLevel = lightLevel;
             FloorTexture = floorTexture;
             CeilingTexture = ceilingTexture;
             _northTexture = northTexture;
@@ -62,12 +98,18 @@
         public SectorInfo(
             Texture floorTexture,
             Texture ceilingTexture,
+            float lightLevel,
             bool passable = true)
+            : this(
+                lightLevel: lightLevel,
+                northTexture: null,
+                southTexture: null,
+                westTexture: null,
+                eastTexture: null,
+                passable: passable,
+                floorTexture: floorTexture,
+                ceilingTexture: ceilingTexture)
         {
-            FloorTexture = floorTexture;
-            CeilingTexture = ceilingTexture;
-
-            Passable = passable;
         }
     }
 }

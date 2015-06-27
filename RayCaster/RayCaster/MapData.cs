@@ -41,10 +41,10 @@ namespace RayCasterGame
                 {'1',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 12
                 {'1',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 13
                 {'1',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 14
-                {'1',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#','#',' ',' ',' ',' ',' ',' ','1'}, // 15 
-                {'1','4','4','4','4','4','4','4','4',' ',' ',' ',' ',' ',' ','#','#',' ','6',' ',' ',' ',' ','1'}, // 16
-                {'1','4',' ','4',' ',' ',' ',' ','4',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 17 
-                {'1','4',' ',' ',' ',' ','5',' ','4',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 18
+                {'1',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 15 
+                {'1','4','4','4','4','4','4','4','4',' ',' ',' ',' ',' ',' ',' ',' ',' ','6',' ',' ',' ',' ','1'}, // 16
+                {'1','4',' ','4',' ',' ',' ',' ','4','#','#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 17 
+                {'1','4',' ',' ',' ',' ','5',' ','4','#','#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 18
                 {'1','4',' ','4',' ',' ',' ',' ','4',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 19
                 {'1','4',' ','4','4','4','4','4','4',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 20
                 {'1','4',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','1'}, // 21
@@ -69,41 +69,27 @@ namespace RayCasterGame
             {
                 case '1':
                     return new SectorInfo(
-                        northTexture: textureLibrary["BROWN96"],
-                        southTexture: textureLibrary["BROWN96"],
-                        westTexture: textureLibrary["BROWN96"],
-                        eastTexture: textureLibrary["BROWN96"]);
+                        wallTexture: textureLibrary["BROWN96"] );
 
                 case '2':
                     return new SectorInfo(
-                        northTexture: textureLibrary["COMPTILE"],
-                        southTexture: textureLibrary["COMPTILE"],
-                        westTexture: textureLibrary["COMPTILE"],
-                        eastTexture: textureLibrary["COMPTILE"]);
+                        wallTexture: textureLibrary["COMPTILE"]);
 
                 case '3':
                     return new SectorInfo(
-                        northTexture: textureLibrary["STARGR2"],
-                        southTexture: textureLibrary["STARGR2"],
-                        westTexture: textureLibrary["STARGR2"],
-                        eastTexture: textureLibrary["STARGR2"]);
+                        wallTexture: textureLibrary["STARGR2"]);
 
                 case '4':
                     return new SectorInfo(
-                        northTexture: textureLibrary["STARTAN2"],
-                        southTexture: textureLibrary["STARTAN2"],
-                        westTexture: textureLibrary["STARTAN2"],
-                        eastTexture: textureLibrary["STARTAN2"]);
+                        wallTexture: textureLibrary["STARTAN2"]);
 
                 case '5':
                     return new SectorInfo(
-                        northTexture: textureLibrary["TEKWALL1"],
-                        southTexture: textureLibrary["TEKWALL1"],
-                        westTexture: textureLibrary["TEKWALL1"],
-                        eastTexture: textureLibrary["TEKWALL1"]);
+                        wallTexture: textureLibrary["TEKWALL1"]);
 
                 case '6':
                     return new SectorInfo(
+                        lightLevel: 0.5f,
                         floorTexture: textureLibrary["otherfloor"],
                         ceilingTexture: textureLibrary["otherceiling"],
                         northTexture: textureLibrary["FLOOR0_1"],
@@ -114,12 +100,14 @@ namespace RayCasterGame
                 
                 case '+':
                     return new SectorInfo(
+                        lightLevel: 0.5f,
                         floorTexture: textureLibrary["otherfloor"],
                         ceilingTexture: textureLibrary["otherceiling"],
                         passable: true);
 
                 case '#':
                     return new SectorInfo(
+                        lightLevel: 1.25f,
                         floorTexture: textureLibrary["otherfloor"],
                         ceilingTexture: textureLibrary["otherceiling"],
                         passable: false);
@@ -127,6 +115,7 @@ namespace RayCasterGame
                 case ' ':
                 default:
                     return new SectorInfo(
+                        lightLevel: 0.95f,
                         floorTexture: textureLibrary["FLAT3"],
                         ceilingTexture: textureLibrary["FLOOR0_1"],
                         passable: true);
@@ -152,6 +141,8 @@ namespace RayCasterGame
             return new Texture(newName, texture.Width, texture.Height, buffer);
         }
 
+
+
         public bool HasWalls(Point position)
         {
             return _sectors[PositionToIndex(position)].HasWalls;
@@ -166,6 +157,29 @@ namespace RayCasterGame
         {
             return _sectors[PositionToIndex(position)];
         }
+
+        public SectorInfo GetSectorInfo(Point position, SectorSide side )
+        {
+            switch(side)
+            {
+                case SectorSide.North:
+                    position = new Point(position.X, position.Y - 1);
+                    break;
+                case SectorSide.South:
+                    position = new Point(position.X, position.Y + 1);
+                    break;
+                case SectorSide.East:
+                    position = new Point(position.X + 1, position.Y);
+                    break;
+                case SectorSide.West:
+                default:
+                    position = new Point(position.X - 1, position.Y);
+                    break;
+            }
+
+            return _sectors[PositionToIndex(position)];
+        }
+
 
         private static int PositionToIndex(int x, int y)
         {

@@ -169,6 +169,8 @@ namespace RayCasterGame
                 //x coordinate on the texture
                 int texX = (int)(wallX * texture.Width);
 
+                var sectorInFrontOfWall = _mapData.GetSectorInfo(mapPos, sideHit);
+
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y < drawEnd; y++)
                 {
@@ -185,11 +187,7 @@ namespace RayCasterGame
                         valueFactor *= 0.75f;
                     }
 
-                    //shade by distance
-                    valueFactor *= (float)Math.Min(1, 3.0 / perpWallDist);
-                    color = color.ScaleValue(valueFactor);
-
-                    buffer[column, y] = color;
+                    buffer[column, y] = sectorInFrontOfWall.Shade(color, perpWallDist);
                 }
 
                 //FLOOR CASTING
@@ -241,9 +239,11 @@ namespace RayCasterGame
                     int floorTexY = (int)((currentFloorY * sectorToDraw.FloorTexture.Height) % sectorToDraw.FloorTexture.Height);
 
                     //floor
-                    buffer[column, y] = sectorToDraw.FloorTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
+                    buffer[column, y] =
+                        sectorToDraw.Shade(sectorToDraw.FloorTexture[floorTexX, floorTexY], currentDist);
                     //ceiling
-                    buffer[column, buffer.Height - y] = sectorToDraw.CeilingTexture[floorTexX, floorTexY].ScaleValue((float)Math.Min(1, 3.0 / currentDist));
+                    buffer[column, buffer.Height - y] =
+                        sectorToDraw.Shade(sectorToDraw.CeilingTexture[floorTexX, floorTexY], currentDist);
                 }
             });
         }
