@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace RayCasterGame
 {
@@ -6,9 +7,19 @@ namespace RayCasterGame
     {
         public Vector2 Position = new Vector2(22.5f, 10.5f);
         public Vector2 Direction = new Vector2(-1, 0);
-        public Vector2 CameraPlane = new Vector2(0, 0.66f); // TODO: Figure this out
+        public Vector2 CameraPlane;
 
         private float _radius = 0.25f;
+
+        public PlayerInfo(int width, int height)
+        {
+            var vFov = 30d * Math.PI / 180d;
+            var hFov = 2d*Math.Atan(Math.Tan(vFov/2d)*((double)width/height));
+
+            var cameraPlaneLength = (float)(2d * Math.Tan(hFov / 2d));
+
+            CameraPlane = new Vector2(0, 1) * cameraPlaneLength;
+        }
 
         public void Update(MapData mapData, MovementInputs inputs, GameTime gameTime)
         {

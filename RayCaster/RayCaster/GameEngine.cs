@@ -19,7 +19,6 @@ namespace RayCasterGame
         // ** CUDAfx?
         // * Dynamic resolution (changing size of screen buffer at runtime)
         // ** Dynamic detail?  Cut resolution by 2, 4, etc?
-        // * Full screen support
         // * Sprite rendering
         // * Weapon sprites
         // * Text rendering (bitmap font)
@@ -48,14 +47,20 @@ namespace RayCasterGame
         PlayerInfo _player;
         MapData _mapData;
 
-        private const int ScreenWidth = 1024;
-        private const int ScreenHeight = 768;
+        private int ScreenWidth { get; set; }
+        private int ScreenHeight { get; set; }
 
-        private const int RayCastRenderWidth = 1024 / 2;
-        private const int RayCastRenderHeight = 768 / 2;
+        private int RayCastRenderWidth { get { return ScreenWidth/2; } }
+        private int RayCastRenderHeight { get { return ScreenHeight/2; } }
 
         public GameEngine()
         {
+            ScreenWidth = 1024;
+            ScreenHeight = 768;
+            //ScreenWidth = 1920;
+            //ScreenHeight = 1200;
+
+
             _graphics = new GraphicsDeviceManager(this)
             {
                 PreferredBackBufferWidth = ScreenWidth,
@@ -84,6 +89,9 @@ namespace RayCasterGame
         /// </summary>
         protected override void LoadContent()
         {
+            ScreenWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
+            ScreenHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
+
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -109,7 +117,7 @@ namespace RayCasterGame
 
             Content.Unload();
 
-            _player = new PlayerInfo();
+            _player = new PlayerInfo(ScreenWidth,ScreenHeight);
             _mapData = new MapData(namedTextures);
 
             _caster = new Renderer(_player, _mapData);
@@ -179,6 +187,9 @@ namespace RayCasterGame
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            var ScreenWidth = GraphicsDevice.PresentationParameters.BackBufferWidth;
+           var ScreenHeight = GraphicsDevice.PresentationParameters.BackBufferHeight;
+
             _spriteBatch.Begin(
                 sortMode: SpriteSortMode.Immediate,
                 blendState: BlendState.Opaque,
