@@ -111,14 +111,15 @@ namespace RayCasterGame
                 "FLAT3",
             };
 
-            var namedTextureResources = texturesToLoad.Select(name => Tuple.Create(name, Content.Load<Texture2D>("Textures/" + name)));
-
-            var namedTextures = namedTextureResources.Select(namedResource => Texture.FromTextureResource(namedResource.Item1, namedResource.Item2));
+            var namedTextureResources = texturesToLoad.Select(name => Tuple.Create(name, Content.Load<Texture2D>("Textures/" + name))).ToArray();
+            var imageLibrary = new ImageLibrary(namedTextureResources);
 
             Content.Unload();
 
+
+
             _player = new PlayerInfo(ScreenWidth,ScreenHeight);
-            _mapData = new MapData(namedTextures);
+            _mapData = new MapData(imageLibrary);
 
             _caster = new Renderer(_player, _mapData);
         }

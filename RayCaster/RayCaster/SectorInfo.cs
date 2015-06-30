@@ -2,35 +2,37 @@
 {
     sealed class SectorInfo
     {
+        private readonly ImageLibrary _library;
+
         // TODO: Kill this class
 
         public readonly bool Passable;
 
-        public readonly Texture FloorTexture;
-        public readonly Texture CeilingTexture;
+        public readonly IndexedColorTexture FloorTexture;
+        public readonly IndexedColorTexture CeilingTexture;
 
-        private readonly Texture _northTexture;
-        private readonly Texture _southTexture;
-        private readonly Texture _westTexture;
-        private readonly Texture _eastTexture;
+        private readonly IndexedColorTexture _northTexture;
+        private readonly IndexedColorTexture _southTexture;
+        private readonly IndexedColorTexture _westTexture;
+        private readonly IndexedColorTexture _eastTexture;
 
         // 0 - 2
         // 0 is dark, 1 is fullbright, 2 is overbright
-        private readonly float _lightLevel;
+        private readonly int _lightLevel = LightLevels.FullBrightIndex;
 
         public bool HasWalls
         {
             get
             {
                 return
-                    _northTexture !=  Texture.Empty &&
-                    _southTexture != Texture.Empty &&
-                    _westTexture != Texture.Empty &&
-                    _eastTexture != Texture.Empty;
+                    _northTexture != IndexedColorTexture.Empty &&
+                    _southTexture != IndexedColorTexture.Empty &&
+                    _westTexture != IndexedColorTexture.Empty &&
+                    _eastTexture != IndexedColorTexture.Empty;
             }
         }
 
-        public Texture GetWallTexture(SectorSide side)
+        public IndexedColorTexture GetWallTexture(SectorSide side)
         {
             switch (side)
             {
@@ -46,26 +48,20 @@
             }
         }
 
-        public uint Shade(uint color, double distance)
+        public uint Shade(int paletteIndex, double distance)
         {
-            return color;
-            //if (_lightLevel <= 1)
-            //{
-            //    return color.ScaleValue(_lightLevel);
-            //}
-            //else
-            //{
-            //    return color.Mutate(vx: v => 1f, sx: s => System.Math.Min(1, s * _lightLevel));
-            //}
+            return _library.GetColor(paletteIndex,_lightLevel);
         }
 
         public SectorInfo(
-            Texture wallTexture,
-            Texture floorTexture = null,
-            Texture ceilingTexture = null,
-            float lightLevel = 1f,
+            ImageLibrary library,
+            IndexedColorTexture wallTexture,
+            IndexedColorTexture floorTexture = null,
+            IndexedColorTexture ceilingTexture = null,
+            int lightLevel = LightLevels.FullBrightIndex,
             bool passable = false)
             : this(
+                library: library,
                 lightLevel: lightLevel,
                 northTexture: wallTexture,
                 southTexture: wallTexture,
@@ -78,32 +74,36 @@
         }
 
         public SectorInfo(
-            Texture northTexture,
-            Texture southTexture,
-            Texture westTexture,
-            Texture eastTexture,
-            float lightLevel = 1f,
+            ImageLibrary library,
+            IndexedColorTexture northTexture,
+            IndexedColorTexture southTexture,
+            IndexedColorTexture westTexture,
+            IndexedColorTexture eastTexture,
+            int lightLevel = LightLevels.FullBrightIndex,
             bool passable = false,
-            Texture floorTexture = null,
-            Texture ceilingTexture = null)
+            IndexedColorTexture floorTexture = null,
+            IndexedColorTexture ceilingTexture = null)
         {
+            _library = library;
             _lightLevel = lightLevel;
-            FloorTexture = floorTexture ?? Texture.Empty;
-            CeilingTexture = ceilingTexture ?? Texture.Empty;
-            _northTexture = northTexture ?? Texture.Empty;
-            _southTexture = southTexture ?? Texture.Empty;
-            _westTexture = westTexture ?? Texture.Empty;
-            _eastTexture = eastTexture ?? Texture.Empty;
+            FloorTexture = floorTexture ?? IndexedColorTexture.Empty;
+            CeilingTexture = ceilingTexture ?? IndexedColorTexture.Empty;
+            _northTexture = northTexture ?? IndexedColorTexture.Empty;
+            _southTexture = southTexture ?? IndexedColorTexture.Empty;
+            _westTexture = westTexture ?? IndexedColorTexture.Empty;
+            _eastTexture = eastTexture ?? IndexedColorTexture.Empty;
 
             Passable = passable;
         }
 
         public SectorInfo(
-            Texture floorTexture,
-            Texture ceilingTexture,
-            float lightLevel,
+            ImageLibrary library,
+            IndexedColorTexture floorTexture,
+            IndexedColorTexture ceilingTexture,
+            int lightLevel,
             bool passable = true)
             : this(
+                library: library,
                 lightLevel: lightLevel,
                 northTexture: null,
                 southTexture: null,

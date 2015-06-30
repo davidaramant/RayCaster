@@ -11,14 +11,11 @@ namespace RayCasterGame
         readonly int _mapWidth;
         readonly int _mapHeight;
         SectorInfo[] _sectors;
+        ImageLibrary _imageLibrary;
 
-        public MapData(IEnumerable<Texture> textures)
+        public MapData(ImageLibrary imageLibrary)
         {
-            var textureLibrary = textures.ToDictionary(tex => tex.Name, tex => tex);
-
-            // HACK: Make a different floor/ceiling texture.
-            textureLibrary["otherceiling"] = Mutate("otherceiling", textureLibrary["FLOOR0_1"]);
-            textureLibrary["otherfloor"] = Mutate("otherfloor", textureLibrary["FLAT3"]);
+            _imageLibrary = imageLibrary;
 
             _mapWidth = 29;
             _mapHeight = 24;
@@ -30,11 +27,11 @@ namespace RayCasterGame
                 "1                      111111" + //  1
                 "1                      111111" + //  2
                 "1                      111111" + //  3
-                "1     22222    3+3+3   111111" + //  4
-                "1     2   2    +++++   111111" + //  5
-                "1     2   2    3+++3   111111" + //  6
-                "1     2   2    +++++   111111" + //  7
-                "1     22 22    3+3+3   111111" + //  8 
+                "1     22222    3 3 3   111111" + //  4
+                "1     2   2            111111" + //  5
+                "1     2   2    3   3   111111" + //  6
+                "1     2   2            111111" + //  7
+                "1     22 22    3 3 3   111111" + //  8 
                 "1                           1" + //  9
                 "1                           1" + // 10
                 "1                      1111 1" + // 11
@@ -42,9 +39,9 @@ namespace RayCasterGame
                 "1                      1 1111" + // 13
                 "1                      1    1" + // 14
                 "1                      1111 1" + // 15 
-                "144444444         6         1" + // 16
-                "14 4    4##            111 11" + // 17 
-                "14    5 4##            1    1" + // 18
+                "144444444                   1" + // 16
+                "14 4    4              111 11" + // 17 
+                "14    5 4              1    1" + // 18
                 "14 4    4              1    1" + // 19
                 "14 444444              1    1" + // 20
                 "14                     1    1" + // 21
@@ -53,88 +50,52 @@ namespace RayCasterGame
 
             _sectors = new SectorInfo[_mapHeight * _mapWidth];
 
-            for (int index = 0; index < _mapHeight * _mapWidth;index++ )
+            for (int index = 0; index < _mapHeight * _mapWidth; index++)
             {
-                _sectors[index] = CreateSector(mapData[index], textureLibrary);
+                _sectors[index] = CreateSector(mapData[index], _imageLibrary);
 
             }
         }
 
-        private static SectorInfo CreateSector(char mapCode, Dictionary<string, Texture> textureLibrary)
+        private static SectorInfo CreateSector(char mapCode, ImageLibrary imageLibrary)
         {
             switch (mapCode)
             {
                 case '1':
                     return new SectorInfo(
-                        wallTexture: textureLibrary["BROWN96"]);
+                        library: imageLibrary,
+                        wallTexture: imageLibrary.GetTexture("BROWN96"));
 
                 case '2':
                     return new SectorInfo(
-                        wallTexture: textureLibrary["COMPTILE"]);
+                        library: imageLibrary,
+                        wallTexture: imageLibrary.GetTexture("COMPTILE"));
 
                 case '3':
                     return new SectorInfo(
-                        wallTexture: textureLibrary["STARGR2"]);
+                        library: imageLibrary,
+                        wallTexture: imageLibrary.GetTexture("STARGR2"));
 
                 case '4':
                     return new SectorInfo(
-                        wallTexture: textureLibrary["STARTAN2"]);
+                        library: imageLibrary,
+                        wallTexture: imageLibrary.GetTexture("STARTAN2"));
 
                 case '5':
                     return new SectorInfo(
-                        wallTexture: textureLibrary["TEKWALL1"]);
-
-                case '6':
-                    return new SectorInfo(
-                        lightLevel: 0.5f,
-                        floorTexture: textureLibrary["otherfloor"],
-                        ceilingTexture: textureLibrary["otherceiling"],
-                        northTexture: textureLibrary["FLOOR0_1"],
-                        southTexture: textureLibrary["FLOOR0_1"],
-                        westTexture: textureLibrary["FLAT3"],
-                        eastTexture: textureLibrary["FLAT3"],
-                        passable: true);
-
-                case '+':
-                    return new SectorInfo(
-                        lightLevel: 0.5f,
-                        floorTexture: textureLibrary["otherfloor"],
-                        ceilingTexture: textureLibrary["otherceiling"],
-                        passable: true);
-
-                case '#':
-                    return new SectorInfo(
-                        lightLevel: 1.25f,
-                        floorTexture: textureLibrary["otherfloor"],
-                        ceilingTexture: textureLibrary["otherceiling"],
-                        passable: false);
+                        library: imageLibrary,
+                        wallTexture: imageLibrary.GetTexture("TEKWALL1"));
 
                 case ' ':
                 default:
                     return new SectorInfo(
-                        lightLevel: 0.95f,
-                        floorTexture: textureLibrary["FLAT3"],
-                        ceilingTexture: textureLibrary["FLOOR0_1"],
+                        library: imageLibrary,
+                        lightLevel: 9,
+                        floorTexture: imageLibrary.GetTexture("FLAT3"),
+                        ceilingTexture: imageLibrary.GetTexture("FLOOR0_1"),
                         passable: true);
             }
         }
-
-        private static Texture Mutate(string newName, Texture texture)
-        {
-            var buffer = new uint[texture.Width * texture.Height];
-
-            for (int y = 0; y < texture.Height; y++)
-            {
-                for (int x = 0; x < texture.Width; x++)
-                {
-                    buffer[y + x * texture.Width] =
-                        (texture[x, y] + 0x11111111) | 0xFF000000;
-                }
-            }
-
-            return new Texture(newName, texture.Width, texture.Height, buffer);
-        }
-
 
 
         public bool HasWalls(Point position)

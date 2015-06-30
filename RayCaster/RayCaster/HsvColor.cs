@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
+using System;
+using System.Diagnostics;
 
 namespace RayCasterGame
 {
@@ -12,6 +10,7 @@ namespace RayCasterGame
     /// <remarks>
     /// HSV conversions taken from http://stackoverflow.com/questions/3018313/algorithm-to-convert-rgb-to-hsv-and-hsv-to-rgb-in-range-0-255-for-both
     /// </remarks>
+    [DebuggerDisplay("H = {H}, S = {S}, V = {V}")]
     public struct HsvColor
     {
         /// <summary>

@@ -39,6 +39,8 @@
   <ItemGroup>
     <Compile Include="GameEngine.cs" />
     <Compile Include="HsvColor.cs" />
+    <Compile Include="ImageLibrary.cs" />
+    <Compile Include="LightLevels.cs" />
     <Compile Include="MapData.cs" />
     <Compile Include="MovementInputs.cs" />
     <Compile Include="PlayerInfo.cs" />
@@ -48,7 +50,7 @@
     <Compile Include="ScreenBuffer.cs" />
     <Compile Include="SectorInfo.cs" />
     <Compile Include="SectorSide.cs" />
-    <Compile Include="Texture.cs" />
+    <Compile Include="IndexedColorTexture.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

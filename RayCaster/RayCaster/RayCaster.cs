@@ -141,14 +141,6 @@ namespace RayCasterGame
 
                     var color = texture[texX, texY];
 
-                    var valueFactor = 1f;
-
-                    //give x and y sides different brightness
-                    if (sideHit == northSouthSideHit)
-                    {
-                        valueFactor *= 0.75f;
-                    }
-
                     buffer[column, y] = sectorInFrontOfWall.Shade(color, perpWallDist);
                 }
 
