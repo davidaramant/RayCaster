@@ -5,11 +5,12 @@ namespace RayCasterGame
 {
     sealed class ScreenBuffer
     {
+        //TODO: Determine if column-based buffer is worth it       
         readonly int _width;
         readonly int _height;
 
         readonly uint[] _buffer;
-        readonly HsvColor[] _colorBuffer;
+        readonly uint[] _colorBuffer;
 
         public int Width
         {
@@ -21,7 +22,7 @@ namespace RayCasterGame
             get { return _height; }
         }
 
-        public HsvColor this[int x, int y]
+        public uint this[int x, int y]
         {
             get { return _colorBuffer[y + x * Height]; }
             set { _colorBuffer[y + x * Height] = value; }
@@ -32,7 +33,7 @@ namespace RayCasterGame
             _width = width;
             _height = height;
             _buffer = new uint[width * height];
-            _colorBuffer = new HsvColor[width * height];
+            _colorBuffer = new uint[width * height];
         }
 
         public void CopyToTexture(Texture2D texture)
@@ -44,7 +45,7 @@ namespace RayCasterGame
 
                 var j = x + y * _width;
 
-                _buffer[j] = _colorBuffer[i].ToPackedRgbColor();
+                _buffer[j] = _colorBuffer[i];
             });
 
             texture.SetData(_buffer);

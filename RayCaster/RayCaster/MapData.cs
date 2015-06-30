@@ -121,17 +121,14 @@ namespace RayCasterGame
 
         private static Texture Mutate(string newName, Texture texture)
         {
-            var buffer = new HsvColor[texture.Width * texture.Height];
+            var buffer = new uint[texture.Width * texture.Height];
 
             for (int y = 0; y < texture.Height; y++)
             {
                 for (int x = 0; x < texture.Width; x++)
                 {
                     buffer[y + x * texture.Width] =
-                        texture[x, y].Mutate(
-                            hx: h => h - 180,
-                            sx: s => Math.Min(1f, 1.5f * s),
-                            vx: v => v * 0.50f);
+                        (texture[x, y] + 0x11111111) | 0xFF000000;
                 }
             }
 

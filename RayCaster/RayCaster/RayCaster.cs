@@ -149,7 +149,7 @@ namespace RayCasterGame
                         valueFactor *= 0.75f;
                     }
 
-                    buffer[column, y] = sectorInFrontOfWall.Shade(color, perpWallDist).ScaleValue(valueFactor);
+                    buffer[column, y] = sectorInFrontOfWall.Shade(color, perpWallDist);
                 }
 
                 //FLOOR CASTING

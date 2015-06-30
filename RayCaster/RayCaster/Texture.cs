@@ -9,42 +9,19 @@ namespace RayCasterGame
 {
     sealed class Texture
     {
-        public static readonly Texture Empty = new Texture("empty", 1, 1, new HsvColor[1]);
+        public static readonly Texture Empty = new Texture("empty", 1, 1, new uint[1] { uint.MaxValue });
 
         public readonly string Name = "Ugly";
 
         /// <summary>
         /// Column first ordering.
         /// </summary>
-        private readonly HsvColor[] _pixels;
+        private readonly uint[] _pixels;
 
         public readonly int Height;
         public readonly int Width;
 
-        public static Texture GenerateTexture()
-        {
-            int height = 64;
-            int width = 64;
-
-            var pixels = new HsvColor[64 * 64];
-
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    bool xOdd = (x / 8) % 2 == 1;
-                    var yOdd = (y / 8) % 2 == 1;
-
-                    var hue = 360F * ((x + y) / (float)(height + width));
-
-                    pixels[y + x * width] = new HsvColor(hue, 1f, xOdd ^ yOdd ? 1f : 0f);
-                }
-            }
-
-            return new Texture("Ugly", width: width, height: height, pixels: pixels);
-        }
-
-        public Texture(string name, int width, int height, HsvColor[] pixels)
+        public Texture(string name, int width, int height, uint[] pixels)
         {
             if (pixels.Length != width * height)
             {
@@ -62,13 +39,13 @@ namespace RayCasterGame
             var buffer = new uint[textureData.Height * textureData.Width];
             textureData.GetData(buffer);
 
-            var pixels = new HsvColor[textureData.Height * textureData.Width];
+            var pixels = new uint[textureData.Height * textureData.Width];
 
             for (int x = 0; x < textureData.Width; x++)
             {
                 for (int y = 0; y < textureData.Height; y++)
                 {
-                    pixels[y + x * textureData.Width] = HsvColor.FromPackedRgb(buffer[x + y * textureData.Height]);
+                    pixels[y + x * textureData.Width] = buffer[x + y * textureData.Height];
                 }
             }
 
@@ -76,7 +53,7 @@ namespace RayCasterGame
         }
 
 
-        public HsvColor this[int x, int y]
+        public uint this[int x, int y]
         {
             get { return _pixels[y + x * Width]; }
         }

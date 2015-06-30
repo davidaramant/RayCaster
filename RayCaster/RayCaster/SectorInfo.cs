@@ -2,6 +2,8 @@
 {
     sealed class SectorInfo
     {
+        // TODO: Kill this class
+
         public readonly bool Passable;
 
         public readonly Texture FloorTexture;
@@ -44,16 +46,17 @@
             }
         }
 
-        public HsvColor Shade(HsvColor color, double distance)
+        public uint Shade(uint color, double distance)
         {
-            if (_lightLevel <= 1)
-            {
-                return color.ScaleValue(_lightLevel);
-            }
-            else
-            {
-                return color.Mutate(vx: v => 1f, sx: s => System.Math.Min(1, s * _lightLevel));
-            }
+            return color;
+            //if (_lightLevel <= 1)
+            //{
+            //    return color.ScaleValue(_lightLevel);
+            //}
+            //else
+            //{
+            //    return color.Mutate(vx: v => 1f, sx: s => System.Math.Min(1, s * _lightLevel));
+            //}
         }
 
         public SectorInfo(
