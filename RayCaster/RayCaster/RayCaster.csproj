@@ -48,7 +48,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RayCaster.cs" />
     <Compile Include="ScreenBuffer.cs" />
-    <Compile Include="SectorInfo.cs" />
     <Compile Include="SectorSide.cs" />
     <Compile Include="IndexedColorTexture.cs" />
   </ItemGroup>

@@ -8,10 +8,18 @@ namespace RayCasterGame
 {
     sealed class MapData
     {
+        enum SectorType : byte
+        {
+            Rock,
+            Tech
+        }
         readonly int _mapWidth;
         readonly int _mapHeight;
-        SectorInfo[] _sectors;
         ImageLibrary _imageLibrary;
+
+        // Use the "data structure of arrays" design pattern
+        SectorType[] _sectorTypes;
+        bool[] _hasWalls;
 
         public MapData(ImageLibrary imageLibrary)
         {
@@ -48,59 +56,34 @@ namespace RayCasterGame
                 "144444444              1    1" + // 22
                 "11111111111111111111111111111";  // 23
 
-            _sectors = new SectorInfo[_mapHeight * _mapWidth];
+            _sectorTypes = new SectorType[_mapHeight * _mapWidth];
+            _hasWalls = new bool[_mapHeight * _mapWidth];
 
             for (int index = 0; index < _mapHeight * _mapWidth; index++)
             {
-                _sectors[index] = CreateSector(mapData[index], _imageLibrary);
+                switch (mapData[index])
+                {
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                        _sectorTypes[index] = SectorType.Rock;
+                        _hasWalls[index] = true;
+                        break;
 
+                    case ' ':
+                    default:
+                        _sectorTypes[index] = SectorType.Rock;
+                        _hasWalls[index] = false;
+                        break;
+                }
             }
         }
-
-        private static SectorInfo CreateSector(char mapCode, ImageLibrary imageLibrary)
-        {
-            switch (mapCode)
-            {
-                case '1':
-                    return new SectorInfo(
-                        library: imageLibrary,
-                        wallTexture: imageLibrary.GetTexture("BROWN96"));
-
-                case '2':
-                    return new SectorInfo(
-                        library: imageLibrary,
-                        wallTexture: imageLibrary.GetTexture("COMPTILE"));
-
-                case '3':
-                    return new SectorInfo(
-                        library: imageLibrary,
-                        wallTexture: imageLibrary.GetTexture("STARGR2"));
-
-                case '4':
-                    return new SectorInfo(
-                        library: imageLibrary,
-                        wallTexture: imageLibrary.GetTexture("STARTAN2"));
-
-                case '5':
-                    return new SectorInfo(
-                        library: imageLibrary,
-                        wallTexture: imageLibrary.GetTexture("TEKWALL1"));
-
-                case ' ':
-                default:
-                    return new SectorInfo(
-                        library: imageLibrary,
-                        lightLevel: 9,
-                        floorTexture: imageLibrary.GetTexture("FLAT3"),
-                        ceilingTexture: imageLibrary.GetTexture("FLOOR0_1"),
-                        passable: true);
-            }
-        }
-
 
         public bool HasWalls(Point position)
         {
-            return _sectors[PositionToIndex(position)].HasWalls;
+            return _hasWalls[PositionToIndex(position)];
         }
 
         public bool IsPassable(int x, int y)
@@ -111,22 +94,49 @@ namespace RayCasterGame
                 return false;
             }
 
-            return _sectors[PositionToIndex(x, y)].Passable;
+            return !_hasWalls[PositionToIndex(x, y)];
         }
 
         public IndexedColorTexture GetWallTexture(Point position, SectorSide sideHit)
         {
-            return _sectors[PositionToIndex(position)].GetWallTexture(sideHit);
+            switch (_sectorTypes[PositionToIndex(position)])
+            {
+                case SectorType.Rock:
+                    if (sideHit == SectorSide.North | sideHit == SectorSide.South)
+                        return _imageLibrary.GetTexture("STARGR2");
+                    else
+                        return _imageLibrary.GetTexture("STARTAN2");
+
+                case SectorType.Tech:
+                default:
+                    throw new Exception("What");
+            }
         }
 
         public IndexedColorTexture GetFloorTexture(Point position)
         {
-            return _sectors[PositionToIndex(position)].FloorTexture;
+            switch (_sectorTypes[PositionToIndex(position)])
+            {
+                case SectorType.Rock:
+                    return _imageLibrary.GetTexture("FLOOR0_1");
+
+                case SectorType.Tech:
+                default:
+                    throw new Exception("What");
+            }
         }
 
         public IndexedColorTexture GetCeilingTexture(Point position)
         {
-            return _sectors[PositionToIndex(position)].CeilingTexture;
+            switch (_sectorTypes[PositionToIndex(position)])
+            {
+                case SectorType.Rock:
+                    return _imageLibrary.GetTexture("FLAT3");
+
+                case SectorType.Tech:
+                default:
+                    throw new Exception("What");
+            }
         }
 
         public uint Shade(Point position, int paletteIndex, double distance)
@@ -138,34 +148,6 @@ namespace RayCasterGame
         {
             return _imageLibrary.GetColor(paletteIndex, LightLevels.FullBrightIndex);
         }
-
-        private SectorInfo GetSectorInfo(Point position)
-        {
-            return _sectors[PositionToIndex(position)];
-        }
-
-        private SectorInfo GetSectorInfo(Point position, SectorSide side)
-        {
-            switch (side)
-            {
-                case SectorSide.North:
-                    position = new Point(position.X, position.Y - 1);
-                    break;
-                case SectorSide.South:
-                    position = new Point(position.X, position.Y + 1);
-                    break;
-                case SectorSide.East:
-                    position = new Point(position.X + 1, position.Y);
-                    break;
-                case SectorSide.West:
-                default:
-                    position = new Point(position.X - 1, position.Y);
-                    break;
-            }
-
-            return _sectors[PositionToIndex(position)];
-        }
-
 
         private bool IsInvalidPosition(int x, int y)
         {
