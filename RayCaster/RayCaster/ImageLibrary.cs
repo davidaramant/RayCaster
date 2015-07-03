@@ -54,9 +54,9 @@ namespace RayCasterGame
 
                 for (int i = 0; i < LightLevels.NumberOfLevels; i++)
                 {
-                    var percentage = (i + 1) * LightLevels.BrightnessStep;
-
-                    _colorRamp[offset + i] = currentHsvColor.Mutate(vx: v => Math.Min(1f, percentage * v)).ToPackedRgbColor();
+                    _colorRamp[offset + i] = currentHsvColor.Mutate(
+                                sx: s => Math.Min(1f, LightLevels.SaturationFactors[i] * s),
+                                vx: v => Math.Min(1f, LightLevels.ValueFactors[i] * v)).ToPackedRgbColor();
                 }
             }
 
