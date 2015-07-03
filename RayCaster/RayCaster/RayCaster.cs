@@ -138,7 +138,7 @@ namespace RayCasterGame
 
                     var color = texture[texX, texY];
 
-                    buffer[column, y] = _mapData.Shade(mapPos,sideHit, color, perpWallDist);
+                    buffer[column, y] = _mapData.Shade(mapPos, sideHit, color, perpWallDist);
                 }
 
                 //FLOOR CASTING
@@ -200,6 +200,111 @@ namespace RayCasterGame
                         _mapData.Shade(currentMapPosition, ceilingTexture[floorTexX, floorTexY], currentDist);
                 }
             });
+        }
+
+        Vector2 RayCast(Vector2 origin, Vector2 direction)
+        {
+            // ---- ---- ---- ---- ---- ---- ---- ---- SETUP
+            // starting positions
+            float x_px = origin.X, x_py = origin.Y;
+            float y_px = origin.X, y_py = origin.Y;
+
+            Func<float, float> IPART = f => (float)(int)f;
+
+            // ---- ---- ---- ---- ---- ---- ---- ---- Y AXIS INTERSECTIONS
+            if (direction.Y > 0)
+            {
+                float yp = direction.X / direction.Y;
+                //
+                y_px += (IPART(y_py + 1f) - y_py) * yp;
+                y_py = IPART(y_py + 1f);
+                for (; ; )
+                {
+                    //
+                    if (IPART(y_py) >= _mapData.MapHeight) break;
+                    if (IPART(y_px) < 0) break;
+                    if (IPART(y_px) >= _mapData.MapWidth) break;
+                    //
+                    if (!_mapData.IsPassable((int)y_px, (int)y_py))
+                        break;
+                    //
+                    y_px += yp;
+                    y_py = (float)((int)y_py + 1);
+                }
+            }
+            else if (direction.Y < 0)
+            {
+                float yp = direction.X / direction.Y;
+                //
+                y_px -= (y_py - IPART(y_py)) * yp;
+                y_py = IPART(y_py);
+                for (; ; )
+                {
+                    //
+                    if (IPART(y_py - 1f) < 0) break;
+                    if (IPART(y_px) < 0f) break;
+                    if (IPART(y_px) >= _mapData.MapWidth) break;
+                    //
+                    if (!_mapData.IsPassable((int)y_px, (int)(y_py - 1)))
+                        break;
+                    //
+                    y_px -= yp;
+                    y_py = (float)((int)y_py - 1);
+                }
+            }
+
+            // ---- ---- ---- ---- ---- ---- ---- ---- X AXIS INTERSECTIONS
+            if (direction.X > 0)
+            {
+                float xp = direction.Y / direction.X;
+                //
+                x_py += (IPART(x_px + 1f) - x_px) * xp;
+                x_px = IPART(x_px + 1);
+                for (; ; )
+                {
+                    //
+                    if (IPART(x_px) >= _mapData.MapWidth) break;
+                    if (IPART(x_py) < 0f) break;
+                    if (IPART(x_py) >= _mapData.MapHeight) break;
+                    //
+                    if (!_mapData.IsPassable((int)x_px, (int)x_py))
+                        break;
+                    //
+                    x_px = (float)((int)x_px + 1f);
+                    x_py += xp;
+                }
+            }
+            else if (direction.X < 0)
+            {
+                float xp = direction.Y / direction.X;
+                //
+                x_py -= (x_px - IPART(x_px)) * xp;
+                x_px = IPART(x_px);
+                for (; ; )
+                {
+                    //
+                    if (IPART(x_px - 1f) < 0) break;
+                    if (IPART(x_py) < 0) break;
+                    if (IPART(x_py) >= _mapData.MapHeight) break;
+                    //
+                    if (!_mapData.IsPassable((int)(x_px - 1), (int)x_py))
+                        break;
+                    //
+                    x_px = (float)((int)x_px - 1);
+                    x_py -= xp;
+                }
+            }
+
+            // ---- ---- ---- ---- ---- ---- ---- ---- INTERSECTION SELECTION
+            float dx1 = (x_px - origin.X) * (x_px - origin.X);
+            float dy1 = (x_py - origin.Y) * (x_py - origin.Y);
+            float dx2 = (y_px - origin.X) * (y_px - origin.X);
+            float dy2 = (y_py - origin.Y) * (y_py - origin.Y);
+
+            if ((dx1 + dy1) < (dx2 + dy2))
+                return new Vector2(x_px, x_py);
+            else
+                return new Vector2(y_px, y_py);
         }
     }
 }

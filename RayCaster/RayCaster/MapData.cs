@@ -13,8 +13,8 @@ namespace RayCasterGame
             Rock,
             Tech
         }
-        readonly int _mapWidth;
-        readonly int _mapHeight;
+        public readonly int MapWidth;
+        public readonly int MapHeight;
         ImageLibrary _imageLibrary;
 
         // Use the "data structure of arrays" design pattern
@@ -26,8 +26,8 @@ namespace RayCasterGame
         {
             _imageLibrary = imageLibrary;
 
-            _mapWidth = 29;
-            _mapHeight = 24;
+            MapWidth = 29;
+            MapHeight = 24;
 
             var walls =
                 //0        1         2
@@ -84,11 +84,11 @@ namespace RayCasterGame
                 "99999999999999999999999999999" + // 22
                 "99999999999999999999999999999";  // 23
 
-            _sectorTypes = new SectorType[_mapHeight * _mapWidth];
-            _hasWalls = new bool[_mapHeight * _mapWidth];
-            _lightLevels = new int[_mapHeight * _mapWidth];
+            _sectorTypes = new SectorType[MapHeight * MapWidth];
+            _hasWalls = new bool[MapHeight * MapWidth];
+            _lightLevels = new int[MapHeight * MapWidth];
 
-            for (int index = 0; index < _mapHeight * _mapWidth; index++)
+            for (int index = 0; index < MapHeight * MapWidth; index++)
             {
                 switch (walls[index])
                 {
@@ -197,12 +197,12 @@ namespace RayCasterGame
 
         private bool IsInvalidPosition(int x, int y)
         {
-            return x < 0 || x >= _mapWidth || y < 0 || y >= _mapHeight;
+            return x < 0 || x >= MapWidth || y < 0 || y >= MapHeight;
         }
 
         private int PositionToIndex(int x, int y)
         {
-            return y * _mapWidth + x;
+            return y * MapWidth + x;
         }
 
         private int PositionToIndex(Point point)
