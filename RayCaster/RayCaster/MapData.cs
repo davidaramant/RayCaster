@@ -20,6 +20,7 @@ namespace RayCasterGame
         // Use the "data structure of arrays" design pattern
         SectorType[] _sectorTypes;
         bool[] _hasWalls;
+        int[] _lightLevels;
 
         public MapData(ImageLibrary imageLibrary)
         {
@@ -28,46 +29,70 @@ namespace RayCasterGame
             _mapWidth = 29;
             _mapHeight = 24;
 
-            var mapData =
+            var walls =
                 //0        1         2
                 //1234567890123456789012345678
-                "11111111111111111111111111111" + //  0
-                "1                      111111" + //  1
-                "1                      111111" + //  2
-                "1                      111111" + //  3
-                "1     22222    3 3 3   111111" + //  4
-                "1     2   2            111111" + //  5
-                "1     2   2    3   3   111111" + //  6
-                "1     2   2            111111" + //  7
-                "1     22 22    3 3 3   111111" + //  8 
-                "1                           1" + //  9
-                "1                           1" + // 10
-                "1                      1111 1" + // 11
-                "1                      1    1" + // 12
-                "1                      1 1111" + // 13
-                "1                      1    1" + // 14
-                "1                      1111 1" + // 15 
-                "144444444                   1" + // 16
-                "14 4    4              111 11" + // 17 
-                "14    5 4              1    1" + // 18
-                "14 4    4              1    1" + // 19
-                "14 444444              1    1" + // 20
-                "14                     1    1" + // 21
-                "144444444              1    1" + // 22
-                "11111111111111111111111111111";  // 23
+                "#############################" + //  0
+                "#                      ######" + //  1
+                "#                      ######" + //  2
+                "#                      ######" + //  3
+                "#     #####    # # #   ######" + //  4
+                "#     #   #            ######" + //  5
+                "#     #   #    #   #   ######" + //  6
+                "#     #   #            ######" + //  7
+                "#     ## ##    # # #   ######" + //  8 
+                "#                           #" + //  9
+                "#                           #" + // 10
+                "#                      #### #" + // 11
+                "#                      #    #" + // 12
+                "#                      # ####" + // 13
+                "#                      #    #" + // 14
+                "#                      #### #" + // 15 
+                "#########                   #" + // 16
+                "## #    #              ### ##" + // 17 
+                "##    # #              #    #" + // 18
+                "## #    #              #    #" + // 19
+                "## ######              #    #" + // 20
+                "##                     #    #" + // 21
+                "#########              #    #" + // 22
+                "#############################";  // 23
+            var lightLevels =
+                //0        1         2
+                //1234567890123456789012345678
+                "99999999999999999999999999999" + //  0
+                "99012456789ab9999999999999999" + //  1
+                "99999999999999999999999999999" + //  2
+                "99999999999999999999999999999" + //  3
+                "99999999999999999999999999999" + //  4
+                "99999999999999999999999999999" + //  5
+                "99999999999999999999999999999" + //  6
+                "99999999999999999999999999999" + //  7
+                "99999999999999999999999999999" + //  8 
+                "99999999999999999999999999999" + //  9
+                "99999999999999999999999999999" + // 10
+                "99999999999999999999999999999" + // 11
+                "99999999999999999999999999999" + // 12
+                "99999999999999999999999999999" + // 13
+                "99999999999999999999999999999" + // 14
+                "99999999999999999999999999999" + // 15 
+                "99999999999999999999999999999" + // 16
+                "99999999999999999999999999999" + // 17 
+                "99999999999999999999999999999" + // 18
+                "99999999999999999999999999999" + // 19
+                "99999999999999999999999999999" + // 20
+                "99999999999999999999999999999" + // 21
+                "99999999999999999999999999999" + // 22
+                "99999999999999999999999999999";  // 23
 
             _sectorTypes = new SectorType[_mapHeight * _mapWidth];
             _hasWalls = new bool[_mapHeight * _mapWidth];
+            _lightLevels = new int[_mapHeight * _mapWidth];
 
             for (int index = 0; index < _mapHeight * _mapWidth; index++)
             {
-                switch (mapData[index])
+                switch (walls[index])
                 {
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
+                    case '#':
                         _sectorTypes[index] = SectorType.Rock;
                         _hasWalls[index] = true;
                         break;
@@ -78,6 +103,8 @@ namespace RayCasterGame
                         _hasWalls[index] = false;
                         break;
                 }
+
+                _lightLevels[index] = int.Parse(lightLevels[index].ToString(), System.Globalization.NumberStyles.HexNumber);
             }
         }
 
@@ -141,12 +168,31 @@ namespace RayCasterGame
 
         public uint Shade(Point position, int paletteIndex, double distance)
         {
-            return _imageLibrary.GetColor(paletteIndex, LightLevels.FullBrightIndex);
+            return _imageLibrary.GetColor(paletteIndex, _lightLevels[PositionToIndex(position)]);
         }
 
         public uint Shade(Point position, SectorSide sideHit, int paletteIndex, double distance)
         {
-            return _imageLibrary.GetColor(paletteIndex, LightLevels.FullBrightIndex);
+            Point adjustedPosition;
+
+            switch (sideHit)
+            {
+                case SectorSide.North:
+                    adjustedPosition = new Point(position.X, position.Y - 1);
+                    break;
+                case SectorSide.South:
+                    adjustedPosition = new Point(position.X, position.Y + 1);
+                    break;
+                case SectorSide.East:
+                    adjustedPosition = new Point(position.X + 1, position.Y);
+                    break;
+                case SectorSide.West:
+                default:
+                    adjustedPosition = new Point(position.X - 1, position.Y);
+                    break;
+            }
+
+            return _imageLibrary.GetColor(paletteIndex, _lightLevels[PositionToIndex(adjustedPosition)]);
         }
 
         private bool IsInvalidPosition(int x, int y)
