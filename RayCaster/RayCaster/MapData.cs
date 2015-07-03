@@ -114,12 +114,37 @@ namespace RayCasterGame
             return _sectors[PositionToIndex(x, y)].Passable;
         }
 
-        public SectorInfo GetSectorInfo(Point position)
+        public IndexedColorTexture GetWallTexture(Point position, SectorSide sideHit)
+        {
+            return _sectors[PositionToIndex(position)].GetWallTexture(sideHit);
+        }
+
+        public IndexedColorTexture GetFloorTexture(Point position)
+        {
+            return _sectors[PositionToIndex(position)].FloorTexture;
+        }
+
+        public IndexedColorTexture GetCeilingTexture(Point position)
+        {
+            return _sectors[PositionToIndex(position)].CeilingTexture;
+        }
+
+        public uint Shade(Point position, int paletteIndex, double distance)
+        {
+            return _imageLibrary.GetColor(paletteIndex, LightLevels.FullBrightIndex);
+        }
+
+        public uint Shade(Point position, SectorSide sideHit, int paletteIndex, double distance)
+        {
+            return _imageLibrary.GetColor(paletteIndex, LightLevels.FullBrightIndex);
+        }
+
+        private SectorInfo GetSectorInfo(Point position)
         {
             return _sectors[PositionToIndex(position)];
         }
 
-        public SectorInfo GetSectorInfo(Point position, SectorSide side)
+        private SectorInfo GetSectorInfo(Point position, SectorSide side)
         {
             switch (side)
             {

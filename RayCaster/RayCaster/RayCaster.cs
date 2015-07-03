@@ -117,8 +117,7 @@ namespace RayCasterGame
                 int drawEnd = lineHeight / 2 + buffer.Height / 2;
                 if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
-                var sectorHit = _mapData.GetSectorInfo(mapPos);
-                var texture = sectorHit.GetWallTexture(sideHit);
+                var texture = _mapData.GetWallTexture(mapPos, sideHit);
 
                 //calculate value of wallX
                 double wallX; //where exactly the wall was hit
@@ -131,8 +130,6 @@ namespace RayCasterGame
                 //x coordinate on the texture
                 int texX = (int)(wallX * texture.Width);
 
-                var sectorInFrontOfWall = _mapData.GetSectorInfo(mapPos, sideHit);
-
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y < drawEnd; y++)
                 {
@@ -141,7 +138,7 @@ namespace RayCasterGame
 
                     var color = texture[texX, texY];
 
-                    buffer[column, y] = sectorInFrontOfWall.Shade(color, perpWallDist);
+                    buffer[column, y] = _mapData.Shade(mapPos,sideHit, color, perpWallDist);
                 }
 
                 //FLOOR CASTING
@@ -187,17 +184,20 @@ namespace RayCasterGame
                     double currentFloorX = weight * floorXWall + (1.0 - weight) * _player.Position.X;
                     double currentFloorY = weight * floorYWall + (1.0 - weight) * _player.Position.Y;
 
-                    var sectorToDraw = _mapData.GetSectorInfo(new Point { X = (int)currentFloorX, Y = (int)currentFloorY });
+                    var currentMapPosition = new Point { X = (int)currentFloorX, Y = (int)currentFloorY };
 
-                    int floorTexX = (int)((currentFloorX * sectorToDraw.FloorTexture.Width) % sectorToDraw.FloorTexture.Width);
-                    int floorTexY = (int)((currentFloorY * sectorToDraw.FloorTexture.Height) % sectorToDraw.FloorTexture.Height);
+                    var floorTexture = _mapData.GetFloorTexture(currentMapPosition);
+                    var ceilingTexture = _mapData.GetCeilingTexture(currentMapPosition);
+
+                    int floorTexX = (int)((currentFloorX * floorTexture.Width) % floorTexture.Width);
+                    int floorTexY = (int)((currentFloorY * floorTexture.Height) % floorTexture.Height);
 
                     //floor
                     buffer[column, y] =
-                        sectorToDraw.Shade(sectorToDraw.FloorTexture[floorTexX, floorTexY], currentDist);
+                        _mapData.Shade(currentMapPosition, floorTexture[floorTexX, floorTexY], currentDist);
                     //ceiling
                     buffer[column, buffer.Height - y] =
-                        sectorToDraw.Shade(sectorToDraw.CeilingTexture[floorTexX, floorTexY], currentDist);
+                        _mapData.Shade(currentMapPosition, ceilingTexture[floorTexX, floorTexY], currentDist);
                 }
             });
         }
