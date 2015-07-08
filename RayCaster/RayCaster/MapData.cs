@@ -91,16 +91,16 @@ namespace RayCasterGame
             }
 
             // HACK: Put in a light level gradient across the top wall
-            for( int i = 0; i < LightLevels.NumberOfLevels; i++ )
+            for (int i = 0; i < LightLevels.NumberOfLevels; i++)
             {
                 var offset = 1 + i;
-                _lightLevels[PositionToIndex(x: offset, y: 1)] = i;
+                _lightLevels[PositionToMapIndex(x: offset, y: 1)] = i;
             }
         }
 
         public bool HasWalls(Point position)
         {
-            return _hasWalls[PositionToIndex(position)];
+            return _hasWalls[PositionToMapIndex(position)];
         }
 
         public bool IsPassable(int x, int y)
@@ -111,30 +111,79 @@ namespace RayCasterGame
                 return false;
             }
 
-            return !_hasWalls[PositionToIndex(x, y)];
+            return !_hasWalls[PositionToMapIndex(x, y)];
         }
 
+        public IndexedColorTexture GetWallTexture(float x, float y, SectorSide sideHit)
+        {
+            if (sideHit == SectorSide.North || sideHit == SectorSide.South)
+                return _sectors[PositionToMapIndex(x,y)].Wall;
+            else
+                return _sectors[PositionToMapIndex(x,y)].DarkWall;
+        }
+
+        public IndexedColorTexture GetFloorTexture(float x, float y)
+        {
+            return _sectors[PositionToMapIndex(x,y)].Floor;
+        }
+
+        public IndexedColorTexture GetCeilingTexture(float x, float y)
+        {
+            return _sectors[PositionToMapIndex(x,y)].Ceiling;
+        }
+
+        public uint Shade(float x, float y, int paletteIndex, double distance)
+        {
+            return _imageLibrary.GetColor(paletteIndex, _lightLevels[PositionToLightIndex(x, y)]);
+        }
+
+        public uint Shade(float x, float y, SectorSide sideHit, int paletteIndex, double distance)
+        {
+            var adjustedX = x;
+            var adjustedY = y;
+
+            switch (sideHit)
+            {
+                case SectorSide.North:
+                    adjustedY -= 1f;
+                    break;
+                case SectorSide.South:
+                    adjustedY += 1f;
+                    break;
+                case SectorSide.East:
+                    adjustedX += 1;
+                    break;
+                case SectorSide.West:
+                default:
+                    adjustedX -= 1;
+                    break;
+            }
+
+            return Shade(adjustedX, adjustedY, paletteIndex, distance);
+        }
+
+        #region TODO: Kill
         public IndexedColorTexture GetWallTexture(Point position, SectorSide sideHit)
         {
             if (sideHit == SectorSide.North || sideHit == SectorSide.South)
-                return _sectors[PositionToIndex(position)].Wall;
+                return _sectors[PositionToMapIndex(position)].Wall;
             else
-                return _sectors[PositionToIndex(position)].DarkWall;
+                return _sectors[PositionToMapIndex(position)].DarkWall;
         }
 
         public IndexedColorTexture GetFloorTexture(Point position)
         {
-            return _sectors[PositionToIndex(position)].Floor;
+            return _sectors[PositionToMapIndex(position)].Floor;
         }
 
         public IndexedColorTexture GetCeilingTexture(Point position)
         {
-            return _sectors[PositionToIndex(position)].Ceiling;
+            return _sectors[PositionToMapIndex(position)].Ceiling;
         }
 
         public uint Shade(Point position, int paletteIndex, double distance)
         {
-            return _imageLibrary.GetColor(paletteIndex, _lightLevels[PositionToIndex(position)]);
+            return _imageLibrary.GetColor(paletteIndex, _lightLevels[PositionToMapIndex(position)]);
         }
 
         public uint Shade(Point position, SectorSide sideHit, int paletteIndex, double distance)
@@ -158,22 +207,34 @@ namespace RayCasterGame
                     break;
             }
 
-            return _imageLibrary.GetColor(paletteIndex, _lightLevels[PositionToIndex(adjustedPosition)]);
+            return Shade(adjustedPosition, paletteIndex, distance);
         }
+
+        #endregion KILL
 
         private bool IsInvalidPosition(int x, int y)
         {
             return x < 0 || x >= MapWidth || y < 0 || y >= MapHeight;
         }
 
-        private int PositionToIndex(int x, int y)
+        private int PositionToMapIndex(float x, float y)
+        {
+            return PositionToMapIndex((int)x, (int)y);
+        }
+
+        private int PositionToMapIndex(int x, int y)
         {
             return y * MapWidth + x;
         }
 
-        private int PositionToIndex(Point point)
+        private int PositionToMapIndex(Point point)
         {
-            return PositionToIndex(point.X, point.Y);
+            return PositionToMapIndex(point.X, point.Y);
+        }
+
+        private int PositionToLightIndex(float x, float y)
+        {
+            return ((int)y) * MapWidth + (int)x;
         }
     }
 }
