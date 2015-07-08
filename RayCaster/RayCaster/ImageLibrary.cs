@@ -17,7 +17,6 @@ namespace RayCasterGame
             public uint[] RowFirstPixels;
         }
 
-        readonly uint[] _colorPalette;
         readonly Dictionary<string, IndexedColorTexture> _textures;
         readonly uint[] _colorRamp;
 
@@ -61,17 +60,26 @@ namespace RayCasterGame
                 }
             }
 
-            _colorPalette = uniqueColors.ToArray();
+            var colorPalette = uniqueColors.ToArray();
             var colorToIndex =
-                _colorPalette.
-                Select((color, index) => new { Color = color, Index = index }).
-                ToDictionary(pair => pair.Color, pair => pair.Index);
+                    colorPalette.
+                    Select((color, index) => new { Color = color, Index = index }).
+                    ToDictionary(pair => pair.Color, pair => pair.Index);
 
-            _colorRamp = new uint[_colorPalette.Length << LightLevels.NumberOfLightLevelsPower];
+            _colorRamp = CreateColorRamp(colorPalette);
 
-            for (int colorIndex = 0; colorIndex < _colorPalette.Length; colorIndex++)
+            _textures = allRawTextures.ToDictionary(
+                    rt => rt.Name,
+                    rt => IndexedColorTexture.FromTextureResource(rt.Width, rt.Height, rt.RowFirstPixels, colorToIndex));
+        }
+
+        private uint[] CreateColorRamp(uint[] colorPalette)
+        {
+            var colorRamp = new uint[colorPalette.Length << LightLevels.NumberOfLightLevelsPower];
+
+            for (int colorIndex = 0; colorIndex < colorPalette.Length; colorIndex++)
             {
-                var currentColor = _colorPalette[colorIndex];
+                var currentColor = colorPalette[colorIndex];
                 var currentHsvColor = HsvColor.FromPackedRgb(currentColor);
                 var offset = colorIndex << LightLevels.NumberOfLightLevelsPower;
 
@@ -81,7 +89,7 @@ namespace RayCasterGame
 
                     var scale = Lerp(LightLevels.MinValue, 1f, percentDone);
 
-                    _colorRamp[offset + i] =
+                    colorRamp[offset + i] =
                         currentHsvColor.Mutate(vx: v => scale * v).ToPackedRgbColor();
                 }
 
@@ -93,16 +101,14 @@ namespace RayCasterGame
 
                     var scale = Lerp(1f, LightLevels.MaxOverbright, percentDone);
 
-                    _colorRamp[offset + i + LightLevels.FullBrightIndex] =
+                    colorRamp[offset + i + LightLevels.FullBrightIndex] =
                         currentHsvColor.Mutate(
                             sx: s => Math.Min(1f, scale * s),
                             vx: v => Math.Min(1f, scale * v)).ToPackedRgbColor();
                 }
             }
 
-            _textures = allRawTextures.ToDictionary(
-                    rt => rt.Name,
-                    rt => IndexedColorTexture.FromTextureResource(rt.Width, rt.Height, rt.RowFirstPixels, colorToIndex));
+            return colorRamp;
         }
 
         private static float Lerp(float v0, float v1, float t)
