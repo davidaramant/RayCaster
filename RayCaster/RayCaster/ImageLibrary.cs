@@ -67,25 +67,47 @@ namespace RayCasterGame
                 Select((color, index) => new { Color = color, Index = index }).
                 ToDictionary(pair => pair.Color, pair => pair.Index);
 
-            _colorRamp = new uint[_colorPalette.Length * LightLevels.NumberOfLevels];
+            _colorRamp = new uint[_colorPalette.Length << LightLevels.NumberOfLightLevelsPower];
 
             for (int colorIndex = 0; colorIndex < _colorPalette.Length; colorIndex++)
             {
                 var currentColor = _colorPalette[colorIndex];
                 var currentHsvColor = HsvColor.FromPackedRgb(currentColor);
-                var offset = colorIndex * LightLevels.NumberOfLevels;
+                var offset = colorIndex << LightLevels.NumberOfLightLevelsPower;
 
-                for (int i = 0; i < LightLevels.NumberOfLevels; i++)
+                for (int i = 0; i < LightLevels.FullBrightIndex; i++)
                 {
-                    _colorRamp[offset + i] = currentHsvColor.Mutate(
-                                sx: s => Math.Min(1f, LightLevels.SaturationFactors[i] * s),
-                                vx: v => Math.Min(1f, LightLevels.ValueFactors[i] * v)).ToPackedRgbColor();
+                    var percentDone = i / (float)LightLevels.FullBrightIndex;
+
+                    var scale = Lerp(LightLevels.MinValue, 1f, percentDone);
+
+                    _colorRamp[offset + i] =
+                        currentHsvColor.Mutate(vx: v => scale * v).ToPackedRgbColor();
+                }
+
+                var numberOfLevelsRemaining = LightLevels.NumberOfLevels - LightLevels.FullBrightIndex;
+
+                for (int i = 0; i < numberOfLevelsRemaining; i++)
+                {
+                    var percentDone = i / (float)numberOfLevelsRemaining;
+
+                    var scale = Lerp(1f, LightLevels.MaxOverbright, percentDone);
+
+                    _colorRamp[offset + i + LightLevels.FullBrightIndex] =
+                        currentHsvColor.Mutate(
+                            sx: s => Math.Min(1f, scale * s),
+                            vx: v => Math.Min(1f, scale * v)).ToPackedRgbColor();
                 }
             }
 
             _textures = allRawTextures.ToDictionary(
                     rt => rt.Name,
                     rt => IndexedColorTexture.FromTextureResource(rt.Width, rt.Height, rt.RowFirstPixels, colorToIndex));
+        }
+
+        private static float Lerp(float v0, float v1, float t)
+        {
+            return (1f - t) * v0 + t * v1;
         }
 
         public IndexedColorTexture GetTexture(string name)
@@ -100,7 +122,7 @@ namespace RayCasterGame
 
         public uint GetColor(int paletteIndex, int lightLevel)
         {
-            return _colorRamp[paletteIndex * LightLevels.NumberOfLevels + lightLevel];
+            return _colorRamp[(paletteIndex << LightLevels.NumberOfLightLevelsPower) + lightLevel];
         }
     }
 }
