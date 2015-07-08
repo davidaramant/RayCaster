@@ -101,14 +101,11 @@ namespace RayCasterGame
 
             var texturesToLoad = new[]
             {
-                "BROWN96",
-                "COMPTILE",
-                "STARGR2",
-                "STARTAN2",
-                "TEKWALL1",
-
-                "FLOOR0_1",
-                "FLAT3",
+                "RockMiddle1",
+                "RockMiddle2",
+                "RockMiddle3",
+                "RockMiddle4",
+                "RockMiddle5",
             };
 
             var namedTextureResources = texturesToLoad.Select(name => Tuple.Create(name, Content.Load<Texture2D>("Textures/" + name))).ToArray();

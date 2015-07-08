@@ -9,6 +9,14 @@ namespace RayCasterGame
 {
     sealed class ImageLibrary
     {
+        private sealed class RawTexture
+        {
+            public string Name;
+            public int Width;
+            public int Height;
+            public uint[] RowFirstPixels;
+        }
+
         readonly uint[] _colorPalette;
         readonly Dictionary<string, IndexedColorTexture> _textures;
         readonly uint[] _colorRamp;
@@ -19,7 +27,7 @@ namespace RayCasterGame
             {
                 var buffer = new uint[namedResource.Item2.Width * namedResource.Item2.Height];
                 namedResource.Item2.GetData(buffer);
-                return new
+                return new RawTexture
                 {
                     Name = namedResource.Item1,
                     Width = namedResource.Item2.Width,
@@ -28,9 +36,24 @@ namespace RayCasterGame
                 };
             }).ToArray();
 
+            //HACK: Create darkened versions of textures
+            var darkenedRawTextures = rawTextures.Select(rt => new RawTexture
+            {
+                Name = rt.Name + "Darkened",
+                Width = rt.Width,
+                Height = rt.Height,
+                RowFirstPixels =
+                    rt.RowFirstPixels.
+                        Select(color => HsvColor.FromPackedRgb(color).Mutate(vx: v => v * .75f).
+                        ToPackedRgbColor()).
+                        ToArray(),
+            });
+
+            var allRawTextures = rawTextures.Concat(darkenedRawTextures).ToArray();
+
             var uniqueColors = new HashSet<uint>();
 
-            foreach (var tex in rawTextures)
+            foreach (var tex in allRawTextures)
             {
                 foreach (var color in tex.RowFirstPixels)
                 {
@@ -60,7 +83,7 @@ namespace RayCasterGame
                 }
             }
 
-            _textures = rawTextures.ToDictionary(
+            _textures = allRawTextures.ToDictionary(
                     rt => rt.Name,
                     rt => IndexedColorTexture.FromTextureResource(rt.Width, rt.Height, rt.RowFirstPixels, colorToIndex));
         }

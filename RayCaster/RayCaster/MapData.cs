@@ -8,17 +8,30 @@ namespace RayCasterGame
 {
     sealed class MapData
     {
-        enum SectorType : byte
+        sealed class SectorInfo
         {
-            Rock,
-            Tech
+            public readonly IndexedColorTexture Floor;
+            public readonly IndexedColorTexture Ceiling;
+            public readonly IndexedColorTexture Wall;
+            public readonly IndexedColorTexture DarkWall;
+
+            public SectorInfo(
+                IndexedColorTexture floor,
+                IndexedColorTexture ceiling,
+                IndexedColorTexture wall,
+                IndexedColorTexture darkWall)
+            {
+                Floor = floor;
+                Ceiling = ceiling;
+                Wall = wall;
+                DarkWall = darkWall;
+            }
         }
         public readonly int MapWidth;
         public readonly int MapHeight;
         ImageLibrary _imageLibrary;
 
-        // Use the "data structure of arrays" design pattern
-        SectorType[] _sectorTypes;
+        SectorInfo[] _sectors;
         bool[] _hasWalls;
         int[] _lightLevels;
 
@@ -84,26 +97,23 @@ namespace RayCasterGame
                 "99999999999999999999999999999" + // 22
                 "99999999999999999999999999999";  // 23
 
-            _sectorTypes = new SectorType[MapHeight * MapWidth];
+            var rockSectorTypes = Enumerable.Range(1, 5).Select(i =>
+                new SectorInfo(
+                    floor: _imageLibrary.GetTexture("RockMiddle" + i),
+                    ceiling: _imageLibrary.GetTexture("RockMiddle" + i),
+                    wall: _imageLibrary.GetTexture("RockMiddle" + i),
+                    darkWall: _imageLibrary.GetTexture("RockMiddle" + i + "Darkened"))).ToArray();
+
+            _sectors = new SectorInfo[MapHeight * MapWidth];
             _hasWalls = new bool[MapHeight * MapWidth];
             _lightLevels = new int[MapHeight * MapWidth];
 
+            var rand = new Random();
+
             for (int index = 0; index < MapHeight * MapWidth; index++)
             {
-                switch (walls[index])
-                {
-                    case '#':
-                        _sectorTypes[index] = SectorType.Rock;
-                        _hasWalls[index] = true;
-                        break;
-
-                    case ' ':
-                    default:
-                        _sectorTypes[index] = SectorType.Rock;
-                        _hasWalls[index] = false;
-                        break;
-                }
-
+                _hasWalls[index] = walls[index] == '#';
+                _sectors[index] = rockSectorTypes[rand.Next(5)];
                 _lightLevels[index] = int.Parse(lightLevels[index].ToString(), System.Globalization.NumberStyles.HexNumber);
             }
         }
@@ -126,44 +136,20 @@ namespace RayCasterGame
 
         public IndexedColorTexture GetWallTexture(Point position, SectorSide sideHit)
         {
-            switch (_sectorTypes[PositionToIndex(position)])
-            {
-                case SectorType.Rock:
-                    if (sideHit == SectorSide.North | sideHit == SectorSide.South)
-                        return _imageLibrary.GetTexture("STARGR2");
-                    else
-                        return _imageLibrary.GetTexture("STARTAN2");
-
-                case SectorType.Tech:
-                default:
-                    throw new Exception("What");
-            }
+            if (sideHit == SectorSide.North || sideHit == SectorSide.South)
+                return _sectors[PositionToIndex(position)].Wall;
+            else
+                return _sectors[PositionToIndex(position)].DarkWall;
         }
 
         public IndexedColorTexture GetFloorTexture(Point position)
         {
-            switch (_sectorTypes[PositionToIndex(position)])
-            {
-                case SectorType.Rock:
-                    return _imageLibrary.GetTexture("FLOOR0_1");
-
-                case SectorType.Tech:
-                default:
-                    throw new Exception("What");
-            }
+            return _sectors[PositionToIndex(position)].Floor;
         }
 
         public IndexedColorTexture GetCeilingTexture(Point position)
         {
-            switch (_sectorTypes[PositionToIndex(position)])
-            {
-                case SectorType.Rock:
-                    return _imageLibrary.GetTexture("FLAT3");
-
-                case SectorType.Tech:
-                default:
-                    throw new Exception("What");
-            }
+            return _sectors[PositionToIndex(position)].Ceiling;
         }
 
         public uint Shade(Point position, int paletteIndex, double distance)
