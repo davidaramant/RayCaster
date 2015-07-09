@@ -8,7 +8,7 @@ namespace RayCasterGame
 {
     sealed class MapData
     {
-        sealed class SectorInfo
+        struct SectorInfo
         {
             public readonly IndexedColorTexture Floor;
             public readonly IndexedColorTexture Ceiling;
@@ -70,12 +70,14 @@ namespace RayCasterGame
                 "#########              #    #" + // 22
                 "#############################";  // 23
 
-            var rockSectorTypes = Enumerable.Range(1, 5).Select(i =>
-                new SectorInfo(
-                    floor: _imageLibrary.GetTexture("RockMiddle" + i),
-                    ceiling: _imageLibrary.GetTexture("RockMiddle" + i),
-                    wall: _imageLibrary.GetTexture("RockMiddle" + i),
-                    darkWall: _imageLibrary.GetTexture("RockMiddle" + i + "Darkened"))).ToArray();
+            var rockTextures = 
+                Enumerable.Range(1, 5).
+                Select(i => _imageLibrary.GetTexture("RockMiddle" + i)).
+                ToArray();
+            var rockTexturesDark = 
+                Enumerable.Range(1, 5).
+                Select(i => _imageLibrary.GetTexture("RockMiddle" + i + "Darkened")).
+                ToArray();
 
             _sectors = new SectorInfo[MapHeight * MapWidth];
             _hasWalls = new bool[MapHeight * MapWidth];
@@ -86,7 +88,12 @@ namespace RayCasterGame
             for (int index = 0; index < MapHeight * MapWidth; index++)
             {
                 _hasWalls[index] = walls[index] == '#';
-                _sectors[index] = rockSectorTypes[rand.Next(5)];
+
+                _sectors[index] = new SectorInfo(
+                    floor: rockTextures[rand.Next(5)], 
+                    ceiling: rockTextures[rand.Next(5)], 
+                    wall: rockTextures[rand.Next(5)], 
+                    darkWall: rockTexturesDark[rand.Next(5)]);
                 _lightLevels[index] = LightLevels.FullBrightIndex;
             }
 
