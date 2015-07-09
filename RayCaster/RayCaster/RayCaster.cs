@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using System.Threading.Tasks;
 
 namespace RayCasterGame
 {
@@ -20,8 +21,8 @@ namespace RayCasterGame
 
         public void Render(ScreenBuffer buffer)
         {
-            System.Threading.Tasks.Parallel.For(0, buffer.Width, column =>
-            //for (int column = 0; column < buffer.Width; column++)
+            Parallel.For(0, buffer.Width, new ParallelOptions { MaxDegreeOfParallelism = 1 }, column =>
+//            Parallel.For(0, buffer.Width, column =>
             {
                 //calculate ray position and direction 
                 //x-coordinate in camera space
@@ -117,7 +118,7 @@ namespace RayCasterGame
                 int drawEnd = lineHeight / 2 + buffer.Height / 2;
                 if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
-                var texture = _mapData.GetWallTexture(mapPos, sideHit);
+                var texture = _mapData.GetWallTexture(mapPos.X, mapPos.Y, sideHit);
 
                 //calculate value of wallX
                 float wallX; //where exactly the wall was hit
@@ -130,6 +131,42 @@ namespace RayCasterGame
                 //x coordinate on the texture
                 int texX = (int)(wallX * texture.Width);
 
+                // How do you debug this fucking mess? :(
+                // TODO: Strip out shading temporarily, replace DDA with the faster version below, then put shading back
+                // The adjustment of world positions in MapData.Shade is throwing off the calculations...
+                // The adjustment in MapData needs to happen in light coordinates, not world coordinates
+                // ARGH TOMORROW
+
+                //if( mapPos.X == 2 && mapPos.Y == 15 )
+                //{ 
+                //    System.Diagnostics.Debugger.Break();
+                //}
+
+                //world point hit
+                float intersectionX = 0;
+                float intersectionY = 0;
+
+                switch (sideHit)
+                {
+                    case SectorSide.West:
+                        intersectionX = mapPos.X;
+                        intersectionY = mapPos.Y - wallX;
+                        break;
+                    case SectorSide.East:
+                        intersectionX = mapPos.X;
+                        intersectionY = mapPos.Y - wallX;
+                        break;
+                    case SectorSide.South:
+                        intersectionX = mapPos.X + wallX;
+                        intersectionY = mapPos.Y;
+                        break;
+                    case SectorSide.North:
+                    default:
+                        intersectionX = mapPos.X + wallX;
+                        intersectionY = mapPos.Y;
+                        break;
+                }
+
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y < drawEnd; y++)
                 {
@@ -138,9 +175,7 @@ namespace RayCasterGame
 
                     var color = texture[texX, texY];
 
-                    // TODO: Unroll some of this junk to be able to pass in two floats of the actual world position
-
-                    buffer[column, y] = _mapData.Shade(mapPos, sideHit, color, perpWallDist);
+                    buffer[column, y] = _mapData.Shade(intersectionX, intersectionY, sideHit, color, perpWallDist);
                 }
 
                 //FLOOR CASTING
@@ -187,8 +222,8 @@ namespace RayCasterGame
 
                     float currentFloorX = weight * floorXWall + (1.0f - weight) * _player.Position.X;
                     float currentFloorY = weight * floorYWall + (1.0f - weight) * _player.Position.Y;
-                    
-                    var floorTexture = _mapData.GetFloorTexture(currentFloorX,currentFloorY);
+
+                    var floorTexture = _mapData.GetFloorTexture(currentFloorX, currentFloorY);
                     var ceilingTexture = _mapData.GetCeilingTexture(currentFloorX, currentFloorY);
 
                     int floorTexX = (int)((currentFloorX * floorTexture.Width) % floorTexture.Width);
