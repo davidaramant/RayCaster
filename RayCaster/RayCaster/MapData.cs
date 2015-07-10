@@ -135,9 +135,9 @@ namespace RayCasterGame
             _lightLevels[WorldPositionToLightIndex(10.5f, 11f)] = LightLevels.NumberOfLevels - 1;
         }
 
-        public bool HasWalls(Point position)
+        public bool HasWalls(int mapX, int mapY)
         {
-            return _hasWalls[MapPointToMapIndex(position)];
+            return _hasWalls[MapPositionToMapIndex(mapX,mapY)];
         }
 
         public bool IsPassable(int x, int y)
@@ -229,11 +229,6 @@ namespace RayCasterGame
         private int MapPositionToMapIndex(int mapX, int mapY)
         {
             return mapY * MapWidth + mapX;
-        }
-
-        private int MapPointToMapIndex(Point point)
-        {
-            return MapPositionToMapIndex(point.X, point.Y);
         }
 
         private int WorldPositionToLightIndex(float worldX, float worldY)

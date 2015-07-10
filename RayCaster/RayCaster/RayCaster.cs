@@ -101,7 +101,7 @@ namespace RayCasterGame
                         sideHit = northSouthSideHit;
                     }
 
-                    wallHit = _mapData.HasWalls(mapPos);
+                    wallHit = _mapData.HasWalls(mapPos.X, mapPos.Y);
                 }
                 //Calculate distance projected on camera direction (oblique distance will give fisheye effect!)
                 if (sideHit == eastWestSideHit)
@@ -126,7 +126,7 @@ namespace RayCasterGame
                     wallX = rayPos.X + ((mapPos.Y - rayPos.Y + (1 - stepY) / 2) / rayDir.Y) * rayDir.X;
                 else
                     wallX = rayPos.Y + ((mapPos.X - rayPos.X + (1 - stepX) / 2) / rayDir.X) * rayDir.Y;
-                wallX -= (float)(int)wallX;
+                wallX -= FFloor(wallX);
 
                 //x coordinate on the texture
                 int texX = (int)(wallX * texture.Width);
@@ -202,6 +202,11 @@ namespace RayCasterGame
             });
         }
 
+        private static float FFloor( float f)
+        {
+            return (float)(int)f;
+        }
+
         Vector2 RayCast(Vector2 origin, Vector2 direction)
         {
             // ---- ---- ---- ---- ---- ---- ---- ---- SETUP
@@ -209,25 +214,23 @@ namespace RayCasterGame
             float x_px = origin.X, x_py = origin.Y;
             float y_px = origin.X, y_py = origin.Y;
 
-            Func<float, float> IPART = f => (float)(int)f;
-
             // ---- ---- ---- ---- ---- ---- ---- ---- Y AXIS INTERSECTIONS
             if (direction.Y > 0)
             {
                 float yp = direction.X / direction.Y;
-                //
-                y_px += (IPART(y_py + 1f) - y_py) * yp;
-                y_py = IPART(y_py + 1f);
+                
+                y_px += (FFloor(y_py + 1f) - y_py) * yp;
+                y_py = FFloor(y_py + 1f);
                 for (; ; )
                 {
-                    //
-                    if (IPART(y_py) >= _mapData.MapHeight) break;
-                    if (IPART(y_px) < 0) break;
-                    if (IPART(y_px) >= _mapData.MapWidth) break;
-                    //
-                    if (!_mapData.IsPassable((int)y_px, (int)y_py))
+                    // Bounds checking of map disabled since we guarantee there will always be an edge
+                    //if (FFloor(y_py) >= _mapData.MapHeight) break;
+                    //if (FFloor(y_px) < 0) break;
+                    //if (FFloor(y_px) >= _mapData.MapWidth) break;
+                    
+                    if (_mapData.HasWalls((int)y_px, (int)y_py))
                         break;
-                    //
+                    
                     y_px += yp;
                     y_py = (float)((int)y_py + 1);
                 }
@@ -235,19 +238,19 @@ namespace RayCasterGame
             else if (direction.Y < 0)
             {
                 float yp = direction.X / direction.Y;
-                //
-                y_px -= (y_py - IPART(y_py)) * yp;
-                y_py = IPART(y_py);
+                
+                y_px -= (y_py - FFloor(y_py)) * yp;
+                y_py = FFloor(y_py);
                 for (; ; )
                 {
-                    //
-                    if (IPART(y_py - 1f) < 0) break;
-                    if (IPART(y_px) < 0f) break;
-                    if (IPART(y_px) >= _mapData.MapWidth) break;
-                    //
-                    if (!_mapData.IsPassable((int)y_px, (int)(y_py - 1)))
+                    // Bounds checking of map disabled since we guarantee there will always be an edge
+                    //if (FFloor(y_py - 1f) < 0) break;
+                    //if (FFloor(y_px) < 0f) break;
+                    //if (FFloor(y_px) >= _mapData.MapWidth) break;
+                    
+                    if (_mapData.HasWalls((int)y_px, (int)(y_py - 1)))
                         break;
-                    //
+                    
                     y_px -= yp;
                     y_py = (float)((int)y_py - 1);
                 }
@@ -257,19 +260,19 @@ namespace RayCasterGame
             if (direction.X > 0)
             {
                 float xp = direction.Y / direction.X;
-                //
-                x_py += (IPART(x_px + 1f) - x_px) * xp;
-                x_px = IPART(x_px + 1);
+                
+                x_py += (FFloor(x_px + 1f) - x_px) * xp;
+                x_px = FFloor(x_px + 1);
                 for (; ; )
                 {
-                    //
-                    if (IPART(x_px) >= _mapData.MapWidth) break;
-                    if (IPART(x_py) < 0f) break;
-                    if (IPART(x_py) >= _mapData.MapHeight) break;
-                    //
-                    if (!_mapData.IsPassable((int)x_px, (int)x_py))
+                    // Bounds checking of map disabled since we guarantee there will always be an edge
+                    //if (FFloor(x_px) >= _mapData.MapWidth) break;
+                    //if (FFloor(x_py) < 0f) break;
+                    //if (FFloor(x_py) >= _mapData.MapHeight) break;
+                    
+                    if (_mapData.HasWalls((int)x_px, (int)x_py))
                         break;
-                    //
+                    
                     x_px = (float)((int)x_px + 1f);
                     x_py += xp;
                 }
@@ -277,19 +280,19 @@ namespace RayCasterGame
             else if (direction.X < 0)
             {
                 float xp = direction.Y / direction.X;
-                //
-                x_py -= (x_px - IPART(x_px)) * xp;
-                x_px = IPART(x_px);
+                
+                x_py -= (x_px - FFloor(x_px)) * xp;
+                x_px = FFloor(x_px);
                 for (; ; )
                 {
-                    //
-                    if (IPART(x_px - 1f) < 0) break;
-                    if (IPART(x_py) < 0) break;
-                    if (IPART(x_py) >= _mapData.MapHeight) break;
-                    //
-                    if (!_mapData.IsPassable((int)(x_px - 1), (int)x_py))
+                    // Bounds checking of map disabled since we guarantee there will always be an edge
+                    //if (FFloor(x_px - 1f) < 0) break;
+                    //if (FFloor(x_py) < 0) break;
+                    //if (FFloor(x_py) >= _mapData.MapHeight) break;
+                    
+                    if (_mapData.HasWalls((int)(x_px - 1), (int)x_py))
                         break;
-                    //
+                    
                     x_px = (float)((int)x_px - 1);
                     x_py -= xp;
                 }
