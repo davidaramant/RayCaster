@@ -102,8 +102,7 @@ namespace RayCasterGame
                     var scale = Lerp(1f, LightLevels.MaxOverbright, percentDone);
 
                     colorRamp[offset + i + LightLevels.FullBrightIndex] =
-                        currentHsvColor.Mutate(
-                            sx: s => Math.Min(1f, scale * s),
+                        currentHsvColor.Mutate(                            
                             vx: v => Math.Min(1f, scale * v)).ToPackedRgbColor();
                 }
             }
