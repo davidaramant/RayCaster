@@ -126,7 +126,7 @@ namespace RayCasterGame
             return GetColor(paletteIndex, LightLevels.FullBrightIndex);
         }
 
-        public uint GetColor(int paletteIndex, int lightLevel)
+        public uint GetColor(int paletteIndex, byte lightLevel)
         {
             return _colorRamp[(paletteIndex << LightLevels.NumberOfLightLevelsPower) + lightLevel];
         }

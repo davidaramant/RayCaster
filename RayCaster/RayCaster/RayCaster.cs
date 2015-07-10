@@ -131,6 +131,7 @@ namespace RayCasterGame
                 //x coordinate on the texture
                 int texX = (int)(wallX * texture.Width);
 
+                var lightLevel = _mapData.FindWallLightLevel(mapPos.X, mapPos.Y, wallX, sideHit);
 
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y < drawEnd; y++)
@@ -140,7 +141,7 @@ namespace RayCasterGame
 
                     var color = texture[texX, texY];
 
-                    buffer[column, y] = _mapData.ShadeWall(mapPos.X, mapPos.Y, wallX, sideHit, color, perpWallDist);
+                    buffer[column, y] = _mapData.Shade(color, lightLevel);
                 }
 
                 //FLOOR CASTING

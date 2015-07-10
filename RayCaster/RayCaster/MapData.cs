@@ -47,7 +47,7 @@ namespace RayCasterGame
 
         SectorInfo[] _sectors;
         bool[] _hasWalls;
-        int[] _lightLevels;
+        byte[] _lightLevels;
 
         public MapData(ImageLibrary imageLibrary)
         {
@@ -95,7 +95,7 @@ namespace RayCasterGame
 
             _sectors = new SectorInfo[MapHeight * MapWidth];
             _hasWalls = new bool[MapHeight * MapWidth];
-            _lightLevels = new int[MapHeight * MapWidth * 4];
+            _lightLevels = new byte[MapHeight * MapWidth * 4];
 
             var rand = new Random();
 
@@ -174,6 +174,11 @@ namespace RayCasterGame
             return _imageLibrary.GetColor(paletteIndex, _lightLevels[WorldPositionToLightIndex(worldX, worldY)]);
         }
 
+        public uint Shade(int paletteIndex, byte lightLevel)
+        {
+            return _imageLibrary.GetColor(paletteIndex, lightLevel);
+        }
+
         /// <summary>
         /// Walls are shaded according to the light level in front of the wall.
         /// </summary>
@@ -181,10 +186,8 @@ namespace RayCasterGame
         /// <param name="mapY">The y coordinate of the sector hit.</param>
         /// <param name="wallX">The offset of where exactly the ray hit the wall (range 0 to 1)</param>
         /// <param name="sideHit">Which side of the sector was hit.</param>
-        /// <param name="paletteIndex">The paletteIndex to shade.</param>
-        /// <param name="distance">Distance from the viewer to the intersection (currently unused)</param>
-        /// <returns>The final color to draw onscreen.</returns>
-        public uint ShadeWall(int mapX, int mapY, float wallX, SectorSide sideHit, int paletteIndex, double distance)
+        /// <returns>The light level.</returns>
+        public byte FindWallLightLevel(int mapX, int mapY, float wallX, SectorSide sideHit)
         {
             // Map coordinates are the top left (north west) corner of the sector in world coordinates
             // To find the light sector "in front of" the wall, we have to adjust the map position
@@ -213,8 +216,9 @@ namespace RayCasterGame
                     break;
             }
 
-            return Shade(adjustedX, adjustedY, paletteIndex, distance);
+            return _lightLevels[WorldPositionToLightIndex(adjustedX, adjustedY)];
         }
+
 
         private bool IsInvalidPosition(int mapX, int mapY)
         {
