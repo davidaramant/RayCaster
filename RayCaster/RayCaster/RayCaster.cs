@@ -21,8 +21,8 @@ namespace RayCasterGame
 
         public void Render(ScreenBuffer buffer)
         {
-            Parallel.For(0, buffer.Width, new ParallelOptions { MaxDegreeOfParallelism = 1 }, column =>
-//            Parallel.For(0, buffer.Width, column =>
+            //Parallel.For(0, buffer.Width, new ParallelOptions { MaxDegreeOfParallelism = 1 }, column =>
+            Parallel.For(0, buffer.Width, column =>
             {
                 //calculate ray position and direction 
                 //x-coordinate in camera space
@@ -131,41 +131,6 @@ namespace RayCasterGame
                 //x coordinate on the texture
                 int texX = (int)(wallX * texture.Width);
 
-                // How do you debug this fucking mess? :(
-                // TODO: Strip out shading temporarily, replace DDA with the faster version below, then put shading back
-                // The adjustment of world positions in MapData.Shade is throwing off the calculations...
-                // The adjustment in MapData needs to happen in light coordinates, not world coordinates
-                // ARGH TOMORROW
-
-                //if( mapPos.X == 2 && mapPos.Y == 15 )
-                //{ 
-                //    System.Diagnostics.Debugger.Break();
-                //}
-
-                //world point hit
-                float intersectionX = 0;
-                float intersectionY = 0;
-
-                switch (sideHit)
-                {
-                    case SectorSide.West:
-                        intersectionX = mapPos.X;
-                        intersectionY = mapPos.Y - wallX;
-                        break;
-                    case SectorSide.East:
-                        intersectionX = mapPos.X;
-                        intersectionY = mapPos.Y - wallX;
-                        break;
-                    case SectorSide.South:
-                        intersectionX = mapPos.X + wallX;
-                        intersectionY = mapPos.Y;
-                        break;
-                    case SectorSide.North:
-                    default:
-                        intersectionX = mapPos.X + wallX;
-                        intersectionY = mapPos.Y;
-                        break;
-                }
 
                 //draw the pixels of the stripe as a vertical line
                 for (int y = drawStart; y < drawEnd; y++)
@@ -175,7 +140,7 @@ namespace RayCasterGame
 
                     var color = texture[texX, texY];
 
-                    buffer[column, y] = _mapData.Shade(intersectionX, intersectionY, sideHit, color, perpWallDist);
+                    buffer[column, y] = _mapData.ShadeWall(mapPos.X, mapPos.Y, wallX, sideHit, color, perpWallDist);
                 }
 
                 //FLOOR CASTING
@@ -210,8 +175,6 @@ namespace RayCasterGame
 
                 if (drawEnd < 0)
                     drawEnd = buffer.Height; //becomes < 0 when the integer overflows
-
-                var floorWall = new Vector2(floorXWall, floorYWall);
 
                 //draw the floor from drawEnd to the bottom of the screen
                 for (int y = drawEnd + 1; y < buffer.Height; y++)

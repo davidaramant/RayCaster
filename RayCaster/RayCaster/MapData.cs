@@ -6,6 +6,20 @@ using Microsoft.Xna.Framework;
 
 namespace RayCasterGame
 {
+    /// <summary>
+    /// Holds information about the current map
+    /// </summary>
+    /// <remarks>
+    /// There are three different coordinate spaces relevant for the game:
+    /// 
+    /// World coordinates - (floating point) Represents the position of objects and the player
+    /// Map coordinates - (integer) Represents the location of a sector in the map.  1 map unit = 1 world unit
+    /// Light coordinates - (integer) Represents the location of a light level in the map.  1 light unit = 0.5 world unit.  
+    /// 
+    /// There are four light levels per sector.
+    /// 
+    /// All position variables include the relevant coordinate system in their name.
+    /// </remarks>
     sealed class MapData
     {
         struct SectorInfo
@@ -55,7 +69,7 @@ namespace RayCasterGame
                 "#     #   #            ######" + //  7
                 "# #   ## ##    # # #   ######" + //  8 
                 "# #                         #" + //  9
-                "# #                         #" + // 10
+                "# #       #                 #" + // 10
                 "# #                    #### #" + // 11
                 "# #                    #    #" + // 12
                 "# #                    # ####" + // 13
@@ -101,13 +115,24 @@ namespace RayCasterGame
                 _lightLevels[index] = LightLevels.FullBrightIndex;
             }
 
-            // HACK: Put in a light level gradient
-            for (int i = 0; i < LightLevels.NumberOfLevels; i++)
-            {
-                var offset = 0.5f * i;
-                _lightLevels[WorldPositionToLightIndex(worldX: 1f, worldY: 15f - offset)] = i;
-                _lightLevels[WorldPositionToLightIndex(worldX: 1.5f, worldY: 15f - offset)] = i;
-            }
+            // HACK: Test that light logic is correct
+            // (10,10) in map coordinates is the sector we want to surround.
+
+            // West side
+            _lightLevels[WorldPositionToLightIndex(9.5f, 10f)] = 0;
+            _lightLevels[WorldPositionToLightIndex(9.5f, 10.5f)] = LightLevels.NumberOfLevels - 1;
+
+            // North side
+            _lightLevels[WorldPositionToLightIndex(10f, 9.5f)] = LightLevels.NumberOfLevels - 1;
+            _lightLevels[WorldPositionToLightIndex(10.5f, 9.5f)] = 0;
+
+            // East side
+            _lightLevels[WorldPositionToLightIndex(11f, 10f)] = LightLevels.NumberOfLevels - 1;
+            _lightLevels[WorldPositionToLightIndex(11f, 10.5f)] = 0;
+
+            // South side
+            _lightLevels[WorldPositionToLightIndex(10f, 11f)] = 0;
+            _lightLevels[WorldPositionToLightIndex(10.5f, 11f)] = LightLevels.NumberOfLevels - 1;
         }
 
         public bool HasWalls(Point position)
@@ -149,25 +174,42 @@ namespace RayCasterGame
             return _imageLibrary.GetColor(paletteIndex, _lightLevels[WorldPositionToLightIndex(worldX, worldY)]);
         }
 
-        public uint Shade(float worldX, float worldY, SectorSide sideHit, int paletteIndex, double distance)
+        /// <summary>
+        /// Walls are shaded according to the light level in front of the wall.
+        /// </summary>
+        /// <param name="mapX">The x coordinate of the sector hit.</param>
+        /// <param name="mapY">The y coordinate of the sector hit.</param>
+        /// <param name="wallX">The offset of where exactly the ray hit the wall (range 0 to 1)</param>
+        /// <param name="sideHit">Which side of the sector was hit.</param>
+        /// <param name="paletteIndex">The paletteIndex to shade.</param>
+        /// <param name="distance">Distance from the viewer to the intersection (currently unused)</param>
+        /// <returns>The final color to draw onscreen.</returns>
+        public uint ShadeWall(int mapX, int mapY, float wallX, SectorSide sideHit, int paletteIndex, double distance)
         {
-            var adjustedX = worldX;
-            var adjustedY = worldY;
+            // Map coordinates are the top left (north west) corner of the sector in world coordinates
+            // To find the light sector "in front of" the wall, we have to adjust the map position
+
+            float adjustedX = 0;
+            float adjustedY = 0;
 
             switch (sideHit)
             {
                 case SectorSide.North:
-                    adjustedY -= 0.5f;
+                    adjustedX = mapX + wallX;
+                    adjustedY = mapY - 0.5f;
                     break;
                 case SectorSide.South:
-                    adjustedY += 0.5f;
+                    adjustedX = mapX + wallX;
+                    adjustedY = mapY + 1f;
                     break;
                 case SectorSide.East:
-                    adjustedX += 0.5f;
+                    adjustedX = mapX + 1f;
+                    adjustedY = mapY + wallX;
                     break;
                 case SectorSide.West:
                 default:
-                    adjustedX -= 0.5f;
+                    adjustedX = mapX - 0.5f;
+                    adjustedY = mapY + wallX;
                     break;
             }
 

@@ -55,8 +55,8 @@ namespace RayCasterGame
 
         public GameEngine()
         {
-            ScreenWidth = 640;
-            ScreenHeight = 480;
+            ScreenWidth = 1024;
+            ScreenHeight = 768;
             //ScreenWidth = 1920;
             //ScreenHeight = 1200;
 
