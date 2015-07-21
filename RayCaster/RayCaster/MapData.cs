@@ -113,6 +113,7 @@ namespace RayCasterGame
             for (int index = 0; index < _lightLevels.Length; index++)
             {
                 _lightLevels[index] = LightLevels.FullBrightIndex;
+                //_lightLevels[index] = (byte)rand.Next(LightLevels.NumberOfLevels);
             }
 
             // HACK: Test that light logic is correct

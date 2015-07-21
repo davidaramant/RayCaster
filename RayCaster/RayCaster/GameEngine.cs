@@ -50,8 +50,8 @@ namespace RayCasterGame
         private int ScreenWidth { get; set; }
         private int ScreenHeight { get; set; }
 
-        private int RayCastRenderWidth { get { return ScreenWidth/2; } }
-        private int RayCastRenderHeight { get { return ScreenHeight/2; } }
+        private int RayCastRenderWidth { get { return ScreenWidth; } }
+        private int RayCastRenderHeight { get { return ScreenHeight; } }
 
         public GameEngine()
         {
@@ -66,6 +66,7 @@ namespace RayCasterGame
                 PreferredBackBufferWidth = ScreenWidth,
                 PreferredBackBufferHeight = ScreenHeight,
                 IsFullScreen = false,
+//                IsFullScreen = true,
                 SynchronizeWithVerticalRetrace = true,
             };
             Content.RootDirectory = "Content";
